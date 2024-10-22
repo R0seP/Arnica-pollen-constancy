@@ -27,7 +27,7 @@ rowSums(adj_new[, 8:42], na.rm = TRUE)
   #add to 1 but some 0's there because of no pollen data
   #okay because I want to keep original data, but note which ones:
 which(rowSums(adj_new[, 8:42], na.rm = TRUE) == 0)
-#row 296 and row 468 contain NA's because of no pollen recognized in the sample
+#row 216, row 296 and row 468 contain NA's because of no pollen recognized in the sample
 
 #delete clumps percentages from new data frame
 adj_new <- adj_new[,-43]

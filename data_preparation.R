@@ -17,7 +17,6 @@
 #"Arnica_associated" and "Area_associated", which adds up all species that have 
 #been found to favor Arncia or flowers other than Arnica respectively. 
 
-
 #The data frames "Arnica_polli" (n = 226) and "Area_polli" (n = 218) are two subsets  
 #of "comb_all2" that include only samples of species that have been shown to be associated
 #more with Arnica or the surrounding area respectively.
@@ -33,7 +32,7 @@ setwd("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R")
 
 ##import data
 ori <- read.csv("pollen_orig_class.csv", h = T) #original classifications for pollen identity
-adj <- read.csv("pollen_adj_class.csv", h = T)  #adjusted classifications for pollen identity
+adj <- read.csv("adj_new.csv", h = T)  #adjusted classifications for pollen identity
 polli <- read.csv("pollinators.csv", h = T)     #information about pollinator species and group of samples
 pop <- read.csv("pop_size.csv", h = T)          #population size of Arnica at the sites
 seeds <- read.csv("seed_counts.csv", h = T)     #seed counts at sites as proxy for reproductive success
@@ -63,14 +62,14 @@ comb_all <- comb2 %>%
   left_join(pop, by = "Site") %>%
   left_join(av_seeds, by = "Site")
 
-comb_all <- comb_all[,-49] #delete comments column
+comb_all <- comb_all[,-48] #delete comments column
 
-comb_all <- comb_all[, c(1:3, 44:50, 4:43)] #re-sort for better readability
+comb_all <- comb_all[, c(1:3, 43:49, 4:42)] #re-sort for better readability
 
 #create column with percentage of all other pollen
 comb_all$P_Not.Arnica <- rep(0, length(comb_all$Site))
 for (i in 1:length(comb_all$Site)){
-  comb_all[i, "P_Not.Arnica"] <- sum(comb_all[i, c(15:16,18:50)])
+  comb_all[i, "P_Not.Arnica"] <- sum(comb_all[i, c(15:16,18:49)])
 }
 
 library(this.path)
@@ -220,6 +219,10 @@ comb1$Area_associated_narrow <- comb1$Eupeodes_corollae + comb1$Lasioglossum_sp 
   comb1$Bombus_terrestris + comb1$Bombus_ruderarius + comb1$Bombus_pascuorum +
   comb1$Coenonympha_pamphilus + comb1$Ochlodes_sylvanus
 
+comb1$Arnica_associated_noMel <- comb1$Dasytes_niger + comb1$Empis_livida + comb1$Empis_tessellata +
+  comb1$Eristalis_sp + comb1$Helophilus_pendulus + comb1$Merodon_equestris + 
+  comb1$Oedemera_sp + comb1$Stenurella_melanura
+
 #add number of Arnica by multiplying with overall number of pollen
 comb_all$Nr_Arnica <- comb_all$nPoll*comb_all$P_ASTE.Arnica.montana
 comb_all$Nr_Not.Arnica <- comb_all$nPoll*comb_all$P_Not.Arnica
@@ -230,7 +233,12 @@ work_species
 
 #second combined dataframe with only those important species
 comb_all2 <- comb_all[comb_all$Species %in% work_species, ]
-comb_all2 <- comb_all2[-373,] #remove Andrena sample with no pollen identified
+which(!complete.cases(comb_all2)) #find indices of rows with NA's
+#comb_all2 <- comb_all2[-373,] #remove Andrena sample with no pollen identified
+comb_all2$Nr_Arnica <- round(comb_all2$Nr_Arnica)
+comb_all2$Nr_Not.Arnica <- round(comb_all2$Nr_Not.Arnica)
+comb_all2$nPoll <- round(comb_all2$nPoll)
+comb_all2$nGarb <- round(comb_all2$nGarb)
 
 #remove unnecessary objects
 rm(adj)
@@ -301,6 +309,18 @@ Area_polli <- subset(comb_all2, Species %in% c("Bombus terrestris", "Bombus rude
                                                "Andrena sp", "Phyllopertha horticola",
                                                "Bombus pascuorum", "Coenonympha pamphilus",
                                                "Maniola jurtina", "Ochlodes sylvanus"))
+
+#add association to comb_all2
+comb_all2$Association <- rep(0,length(comb_all2$Site))
+
+for (i in 1:length(comb_all2$Site)){
+  comb_all2[i, "Association"] <- ifelse(comb_all2[i,"Species"] %in% c("Eristalis sp", "Meligethes sp", 
+                                                                          "Stenurella melanura", "Dasytes niger", 
+                                                                          "Empis livida", "Empis tessellata", 
+                                                                          "Helophilus pendulus", "Oedemera sp",
+                                                                          "Merodon equestris"),
+                                            "Arnica", "Area")
+}
 
 
 #load meteorological data

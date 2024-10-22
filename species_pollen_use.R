@@ -14,8 +14,7 @@ source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/EffPlots
 
 #get data
 source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_preparation.R", echo = TRUE)
-comb_all2$Nr_Arnica <- round(comb_all2$Nr_Arnica)
-comb_all2$Nr_Not.Arnica <- round(comb_all2$Nr_Not.Arnica)
+
 comb_all2$Species <- as.factor(comb_all2$Species)
 
 #comb_imp_species <- comb_all2 %>%
@@ -41,28 +40,28 @@ species_means <- comb_all2 %>%
 
 #mean
 overall_mean <- mean(species_means$mean_value)
-overall_mean # = 0.2332081
+overall_mean # = 0.2477039
 
 closest_value <- species_means %>%
   filter(abs(mean_value - overall_mean) == min(abs(mean_value - overall_mean)))
 
 print(closest_value)
-#Maniola jurtina closest to mean of amount Arnica carried,
-#use Maniola jurtina as baseline?
+#Apis mellifera closest to mean of amount Arnica carried,
+#use Apis mellifera as baseline?
 
 #median
 overall_median <- median(species_means$mean_value)
-overall_median # = 0.17553538
+overall_median # = 0.1813998
 
 closest_value2 <- species_means %>%
   filter(abs(mean_value - overall_median) == min(abs(mean_value - overall_median)))
 
 print(closest_value2)
-#Andrena sp closest to median of proportion Arnica carried,
-#use Andrena sp as baseline?
+#Maniola jurtina sp closest to median of proportion Arnica carried,
+#use Maniola jurtina as baseline?
 
 #model selection----
-comb_all2$Species <- relevel(comb_all2$Species, ref = "Maniola jurtina")
+comb_all2$Species <- relevel(comb_all2$Species, ref = "Apis mellifera")
 m1 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ (Stems + Group + Species)^2
                + (1|Site), family = binomial, 
               data = comb_all2,
@@ -218,18 +217,17 @@ m_species2 <- glmmTMB(Nr_Arnica ~ (log(Stems) * Species + log(Stems) * Group) * 
                       control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m_species2)
 
-eff_species2 <- effect(c("log(Stems)", "Group"),m_species2, xlevels = 50)
-eff_species2 <- effect("log(Stems):Group",m_species2, xlevels = 50)
+eff_species2 <- effect(c("log(Stems)"),m_species2, xlevels = 50)
 eff.plot(eff_species2, plotdata = T,
          ylab = "Proportion of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
          main = "negative binomial model",
          ylim.data = T, overlay = F, 
-         col.data = c(1,2))
+         col.data = 3)
 
 #test if model assumptions are met and test model for fit:
 check_overdispersion(m_species2)
-#no ovdispersion
+#no overdispersion
 #qqnorm(resid(m_species2))
 hist(resid(m_species2))
 #qqplot and histogram of residuals look terrible
@@ -237,7 +235,7 @@ hist(resid(m_species2))
 residuals_species2 <- simulateResiduals(fittedModel = m_species2)
 plot(residuals_species2)
 testOutliers(residuals_species2)
-#outlier test non-significant, residuals vs predicted looks a liitle better than 
+#outlier test non-significant, residuals vs predicted looks a liittle better than 
 #for binomial model. KS test non-significant. Model fit issues?
 
 #model poisson----
@@ -282,4 +280,526 @@ pred_data_species$Pred.Arnica <- predictions_species$fit
 pred_data_species$Pred.Arnica_SE <- predictions_species$se.fit
 pred_data_species
 
+#models by species----
 
+###Andrena sp----
+Andrena <- subset(comb_all2, Species == "Andrena sp")
+
+mAndrena <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ (log(Stems) * Group)
+                    + (1|Site), family = binomial,
+                    data = Andrena,
+                    control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mAndrena)
+summary(mAndrena)
+
+eff_Andrena <- effect(c("log(Stems)"),mAndrena, xlevels = 50)
+eff.plot(eff_Andrena, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Adrena sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Andrena <- simulateResiduals(fittedModel = mAndrena)
+plot(residuals_Andrena)
+testOutliers(residuals_Andrena)
+
+
+###Apis mellifera----
+Apis <- subset(comb_all2, Species == "Apis mellifera")
+
+mApis <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ (log(Stems) * Group)
+                    + (1|Site), family = binomial,
+                    data = Apis,
+                    control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mApis)
+summary(mApis)
+
+eff_Apis <- effect(c("log(Stems)"),mApis, xlevels = 50)
+eff.plot(eff_Apis, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Apis mellifera",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Apis <- simulateResiduals(fittedModel = mApis)
+plot(residuals_Apis)
+testOutliers(residuals_Apis)
+
+
+###Bombus pascuorum----
+Bombus_pascuorum <- subset(comb_all2, Species == "Bombus pascuorum")
+
+mBombus_pascuorum <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems)
+                 + (1|Site), family = binomial,
+                 data = Bombus_pascuorum,
+                 control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mBombus_pascuorum)
+summary(mBombus_pascuorum)
+
+eff_Bombus_pascuorum <- effect(c("log(Stems)"),mBombus_pascuorum, xlevels = 50)
+eff.plot(eff_Bombus_pascuorum, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Bombus pascuorum",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Bombus_pascuorum <- simulateResiduals(fittedModel = mBombus_pascuorum)
+plot(residuals_Bombus_pascuorum)
+testOutliers(residuals_Bombus_pascuorum)
+
+
+###Bombus ruderarius----
+Bombus_ruderarius <- subset(comb_all2, Species == "Bombus ruderarius")
+
+mBombus_ruderarius <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) 
+                             + (1|Site), family = binomial,
+                             data = Bombus_ruderarius,
+                             control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mBombus_ruderarius)
+summary(mBombus_ruderarius)
+
+eff_Bombus_ruderarius <- effect(c("log(Stems)"),mBombus_ruderarius, xlevels = 50)
+eff.plot(eff_Bombus_ruderarius, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Bombus ruderarius",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Bombus_ruderarius <- simulateResiduals(fittedModel = mBombus_ruderarius)
+plot(residuals_Bombus_ruderarius)
+testOutliers(residuals_Bombus_ruderarius)
+
+
+###Bombus terrestris----
+Bombus_terrestris <- subset(comb_all2, Species == "Bombus terrestris")
+
+mBombus_terrestris <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group 
+                              + (1|Site), family = binomial,
+                              data = Bombus_terrestris,
+                              control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mBombus_terrestris)
+summary(mBombus_terrestris)
+
+eff_Bombus_terrestris <- effect(c("log(Stems)"),mBombus_terrestris, xlevels = 50)
+eff.plot(eff_Bombus_terrestris, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Bombus terrestris",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Bombus_terrestris <- simulateResiduals(fittedModel = mBombus_terrestris)
+plot(residuals_Bombus_terrestris)
+testOutliers(residuals_Bombus_terrestris)
+
+
+###Coenonympha pamphilus----
+Coenonympha <- subset(comb_all2, Species == "Coenonympha pamphilus")
+
+mCoenonympha <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems)
+                              + (1|Site), family = binomial,
+                              data = Coenonympha,
+                              control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mCoenonympha)
+summary(mCoenonympha)
+
+eff_Coenonympha <- effect(c("log(Stems)"),mCoenonympha, xlevels = 50)
+eff.plot(eff_Coenonympha, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Coenonympha pamphilus",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Coenonympha <- simulateResiduals(fittedModel = mCoenonympha)
+plot(residuals_Coenonympha)
+testOutliers(residuals_Coenonympha)
+
+
+###Dasytes niger----
+Dasytes <- subset(comb_all2, Species == "Dasytes niger")
+
+mDasytes <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) + Group
+                        + (1|Site), family = binomial,
+                        data = Dasytes,
+                        control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mDasytes)
+summary(mDasytes)
+
+eff_Dasytes <- effect(c("log(Stems)"),mDasytes, xlevels = 50)
+eff.plot(eff_Dasytes, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Dasytes niger",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Dasytes <- simulateResiduals(fittedModel = mDasytes)
+plot(residuals_Dasytes)
+testOutliers(residuals_Dasytes)
+
+
+###Empis livida----
+Empis_livida <- subset(comb_all2, Species == "Empis livida")
+
+mEmpis_livida <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) 
+                    + (1|Site), family = binomial,
+                    data = Empis_livida,
+                    control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mEmpis_livida)
+summary(mEmpis_livida)
+
+eff_Empis_livida <- effect(c("log(Stems)"),mEmpis_livida, xlevels = 50)
+eff.plot(eff_Empis_livida, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Empis livida",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Empis_livida <- simulateResiduals(fittedModel = mEmpis_livida)
+plot(residuals_Empis_livida)
+testOutliers(residuals_Empis_livida)
+
+
+###Empis tessellata----
+Empis_tessellata <- subset(comb_all2, Species == "Empis tessellata")
+
+mEmpis_tessellata <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                         + (1|Site), family = binomial,
+                         data = Empis_tessellata,
+                         control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+
+check_overdispersion(mEmpis_tessellata)
+summary(mEmpis_tessellata)
+
+eff_Empis_tessellata <- effect(c("log(Stems)"),mEmpis_tessellata, xlevels = 50)
+eff.plot(eff_Empis_tessellata, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Empis tessellata",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Empis_tessellata <- simulateResiduals(fittedModel = mEmpis_tessellata)
+plot(residuals_Empis_tessellata)
+testOutliers(residuals_Empis_tessellata)
+
+
+###Eristalis sp----
+Eristalis <- subset(comb_all2, Species == "Eristalis sp")
+
+mEristalis <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                             + (1|Site), family = binomial,
+                             data = Eristalis,
+                             control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mEristalis)
+summary(mEristalis)
+
+eff_Eristalis <- effect(c("log(Stems)"),mEristalis, xlevels = 50)
+eff.plot(eff_Eristalis, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Eristalis sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Eristalis <- simulateResiduals(fittedModel = mEristalis)
+plot(residuals_Eristalis)
+testOutliers(residuals_Eristalis)
+
+
+###Eupeodes corollae----
+Eupeodes <- subset(comb_all2, Species == "Eupeodes corollae")
+
+mEupeodes <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                      + (1|Site), family = binomial,
+                      data = Eupeodes,
+                      control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mEupeodes)
+summary(mEupeodes)
+
+eff_Eupeodes <- effect(c("log(Stems)"),mEupeodes, xlevels = 50)
+eff.plot(eff_Eupeodes, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Eupeodes corollae",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Eupeodes <- simulateResiduals(fittedModel = mEupeodes)
+plot(residuals_Eupeodes)
+testOutliers(residuals_Eupeodes)
+
+
+###Helophilus pendulus----
+Helophilus <- subset(comb_all2, Species == "Helophilus pendulus")
+
+mHelophilus <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                     + (1|Site), family = binomial,
+                     data = Helophilus,
+                     control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mHelophilus)
+summary(mHelophilus)
+
+eff_Helophilus <- effect(c("log(Stems)"),mHelophilus, xlevels = 50)
+eff.plot(eff_Helophilus, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Helophilus pendulus",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Helophilus <- simulateResiduals(fittedModel = mHelophilus)
+plot(residuals_Helophilus)
+testOutliers(residuals_Helophilus)
+
+
+###Lasioglossum sp----
+Lasioglossum <- subset(comb_all2, Species == "Lasioglossum sp")
+
+mLasioglossum <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                       + (1|Site), family = binomial,
+                       data = Lasioglossum,
+                       control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mLasioglossum)
+summary(mLasioglossum)
+
+eff_Lasioglossum <- effect(c("log(Stems)"),mLasioglossum, xlevels = 50)
+eff.plot(eff_Lasioglossum, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Lasioglossum sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Lasioglossum <- simulateResiduals(fittedModel = mLasioglossum)
+plot(residuals_Lasioglossum)
+testOutliers(residuals_Lasioglossum)
+
+
+###Maniola jurtina----
+Maniola <- subset(comb_all2, Species == "Maniola jurtina")
+
+mManiola <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) + Group
+                         + (1|Site), family = binomial,
+                         data = Maniola,
+                         control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mManiola)
+summary(mManiola)
+
+eff_Maniola <- effect(c("log(Stems)"),mManiola, xlevels = 50)
+eff.plot(eff_Maniola, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Maniola jurtina",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Maniola <- simulateResiduals(fittedModel = mManiola)
+plot(residuals_Maniola)
+testOutliers(residuals_Maniola)
+
+
+###Meligethes sp----
+Meligethes <- subset(comb_all2, Species == "Meligethes sp")
+
+mMeligethes <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) 
+                    + (1|Site), family = binomial,
+                    data = Meligethes,
+                    control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mMeligethes)
+summary(mMeligethes)
+
+eff_Meligethes <- effect(c("log(Stems)"),mMeligethes, xlevels = 50)
+eff.plot(eff_Meligethes, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Meligethes sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Meligethes <- simulateResiduals(fittedModel = mMeligethes)
+plot(residuals_Meligethes)
+testOutliers(residuals_Meligethes)
+
+
+###Merodon equestris----
+Merodon <- subset(comb_all2, Species == "Merodon equestris")
+
+mMerodon <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems)* Group
+                       + (1|Site), family = binomial,
+                       data = Merodon,
+                       control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+check_overdispersion(mMerodon)
+summary(mMerodon)
+
+eff_Merodon <- effect(c("log(Stems)"),mMerodon, xlevels = 50)
+eff.plot(eff_Merodon, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Merodon equestris",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Merodon <- simulateResiduals(fittedModel = mMerodon)
+plot(residuals_Merodon)
+testOutliers(residuals_Merodon)
+
+
+###Nomada sp----
+Nomada <- subset(comb_all2, Species == "Nomada sp")
+
+mNomada <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems)* Group
+                    + (1|Site), family = binomial,
+                    data = Nomada)
+
+check_overdispersion(mNomada)
+summary(mNomada)
+
+eff_Nomada <- effect(c("log(Stems)"),mNomada, xlevels = 50)
+eff.plot(eff_Nomada, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Nomada sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Nomada <- simulateResiduals(fittedModel = mNomada)
+plot(residuals_Nomada)
+testOutliers(residuals_Nomada)
+
+
+###Ochlodes sylvanus----
+Ochlodes <- subset(comb_all2, Species == "Ochlodes sylvanus")
+
+mOchlodes <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems)
+                   + (1|Site), family = binomial,
+                   data = Ochlodes)
+
+check_overdispersion(mOchlodes)
+summary(mOchlodes)
+
+eff_Ochlodes <- effect(c("log(Stems)"),mOchlodes, xlevels = 50)
+eff.plot(eff_Ochlodes, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Ochlodes sylvanus",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Ochlodes <- simulateResiduals(fittedModel = mOchlodes)
+plot(residuals_Ochlodes)
+testOutliers(residuals_Ochlodes)
+
+
+###Oedemera sp----
+Oedemera <- subset(comb_all2, Species == "Oedemera sp")
+
+mOedemera <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                     + (1|Site), family = binomial,
+                     data = Oedemera)
+
+check_overdispersion(mOedemera)
+summary(mOedemera)
+
+eff_Oedemera <- effect(c("log(Stems)"),mOedemera, xlevels = 50)
+eff.plot(eff_Oedemera, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Oedemera sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Oedemera <- simulateResiduals(fittedModel = mOedemera)
+plot(residuals_Oedemera)
+testOutliers(residuals_Oedemera)
+
+
+###Phyllopertha horticola----
+Phyllopertha <- subset(comb_all2, Species == "Phyllopertha horticola")
+
+mPhyllopertha <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) + Group
+                     + (1|Site), family = binomial,
+                     data = Phyllopertha)
+
+check_overdispersion(mPhyllopertha)
+summary(mPhyllopertha)
+
+eff_Phyllopertha <- effect(c("log(Stems)"),mPhyllopertha, xlevels = 50)
+eff.plot(eff_Phyllopertha, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Phyllopertha horticola",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Phyllopertha <- simulateResiduals(fittedModel = mPhyllopertha)
+plot(residuals_Phyllopertha)
+testOutliers(residuals_Phyllopertha)
+
+
+###Sphaerophoria sp----
+Sphaerophoria <- subset(comb_all2, Species == "Sphaerophoria sp")
+
+mSphaerophoria <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) + Group
+                         + (1|Site), family = binomial,
+                         data = Sphaerophoria)
+
+check_overdispersion(mSphaerophoria)
+summary(mSphaerophoria)
+
+eff_Sphaerophoria <- effect(c("log(Stems)"),mSphaerophoria, xlevels = 50)
+eff.plot(eff_Sphaerophoria, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Sphaerophoria sp",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Sphaerophoria <- simulateResiduals(fittedModel = mSphaerophoria)
+plot(residuals_Sphaerophoria)
+testOutliers(residuals_Sphaerophoria)
+
+
+###Stenurella melanura----
+Stenurella <- subset(comb_all2, Species == "Stenurella melanura")
+
+mStenurella <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
+                          + (1|Site), family = binomial,
+                          data = Stenurella)
+
+check_overdispersion(mStenurella)
+summary(mStenurella)
+
+eff_Stenurella <- effect(c("log(Stems)"),mStenurella, xlevels = 50)
+eff.plot(eff_Stenurella, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Stenurella mealnura",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Stenurella <- simulateResiduals(fittedModel = mStenurella)
+plot(residuals_Stenurella)
+testOutliers(residuals_Stenurella)

@@ -17,7 +17,7 @@ source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/EffPlots
 source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_preparation.R", echo = TRUE)
 
 #prepare data----
-adj <- read.csv("pollen_adj_class.csv", h = T)
+adj <- read.csv("adj_new.csv", h = T)
 pollen <- adj[,c(3,8:42)]
 pollen <- na.omit(pollen)
 

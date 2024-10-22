@@ -8,19 +8,65 @@ library(effects)
 library(DHARMa)
 library(MuMIn)
 library(performance)
+library(patchwork)
 source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/EffPlots.R")
 
 #get data
 source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_preparation.R", echo = TRUE)
-comb_all2$Nr_Arnica <- round(comb_all2$Nr_Arnica)
-comb_all2$Nr_Not.Arnica <- round(comb_all2$Nr_Not.Arnica)
-comb_flower <- subset(comb_all2, Group == "flower")   #n = 240
-comb_area <- subset(comb_all2, Group == "area")     #n = 209
+comb_flower <- subset(comb_all, Group == "flower")   #n = 284
+comb_area <- subset(comb_all, Group == "area")     #n = 284
+
+#visualizaion----
+#show proportion of Arnica pollen carried in relation to Arnica population size
+#for different subsets of the data
+
+#all data points split by group pollinators were caught in
+p1 <- ggplot(comb_all, aes(x = Stems, y = P_ASTE.Arnica.montana, color = as.factor(Group))) +
+  geom_point() +
+  labs(title = "", x = "  Nr Stems", y = "% Arnica carried", color = "Group")+
+  scale_color_manual(values = c("area" = "darkgreen","flower"="orange"))+
+  theme_minimal()
+
+#only from pollinators caught on flowers
+p2 <- ggplot(comb_flower, aes(x = Stems, y = P_ASTE.Arnica.montana)) +
+  geom_point(color = "orange") +  
+  labs(title = "Pollinators caught on Arnica flowers", x = "Nr Stems", y = "% Arnica carried") +
+  theme_minimal()
+
+#only from pollinators caught in the area
+p3 <- ggplot(comb_area, aes(x = Stems, y = P_ASTE.Arnica.montana)) +
+  geom_point(color = "darkgreen") +  
+  labs(title = "Pollinators caught in the area", x = "Nr Stems", y = "% Arnica carried") +
+  theme_minimal()
+
+#all data points split by pollinator association
+p4 <- ggplot(comb_all2, aes(x = Stems, y = P_ASTE.Arnica.montana, color = as.factor(Association))) +
+  geom_point() +
+  labs(title = "", x = "  Nr Stems", y = "% Arnica carried", color = "Group")+
+  scale_color_manual(values = c("Area" = "blue","Arnica"="red"))+
+  theme_minimal()
+
+#only "Arnica associated" pollinators
+p5 <- ggplot(Arnica_polli, aes(x = Stems, y = P_ASTE.Arnica.montana)) +
+  geom_point(color = "red") +  
+  labs(title = "Arnica asssociated pollinators", x = "Nr Stems", y = "% Arnica carried") +
+  theme_minimal()
+
+#only "Area associated" pollinators
+p6 <- ggplot(Area_polli, aes(x = Stems, y = P_ASTE.Arnica.montana)) +
+  geom_point(color = "blue") +  
+  labs(title = "Area asssociated pollinators", x = "Nr Stems", y = "% Arnica carried") +
+  theme_minimal()
+
+combined_plot <- p1 + p2 + p3 + p4 + p5 + p6 + 
+  plot_layout(nrow = 2)
+combined_plot
+
 
 
 #general model----
 #binomial model
-m_pollen_gen <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Stems * Group +
+m_pollen_gen <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Stems * Group * Association +
                           (1|Site) + (1|Species), family = binomial, 
                         na.action = na.omit, data = comb_all2)
 summary(m_pollen_gen)
