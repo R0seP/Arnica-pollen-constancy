@@ -55,6 +55,9 @@ eff.plot(eff_community, plotdata = T,
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
+#variance partitioning
+r.squaredGLMM(m_community)
+
 #test if model assumptions are met and test model for fit:
 #qqnorm(resid(m_community)) #qqplot looks good
 qqnorm(resid(m_community))
@@ -95,6 +98,9 @@ eff.plot(eff_community2, plotdata = T,
          xlab = "Population size Arnica (Nr Stems)",
          main = "community composition without Meligethes",
          ylim.data = T, overlay = F, col.data = 3)
+
+#variance partitioning
+r.squaredGLMM(m_community2)
 
 #test if model assumptions are met and test model for fit:
 #qqnorm(resid(m_community)) #qqplot looks good

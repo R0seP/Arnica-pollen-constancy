@@ -88,6 +88,22 @@ eff.plot(eff_poll_nr, plotdata = T,
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
+#variance partitioning
+model_without_stems <- glmmTMB(Poll_per_hr ~ Date_from_start
+                               + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
+model_without_date <- glmmTMB(Poll_per_hr ~ Stems
+                              + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
+
+(r2_full <- r.squaredGLMM(m_poll_nr))
+(r2_without_stems <- r.squaredGLMM(model_without_stems))
+(r2_without_date <- r.squaredGLMM(model_without_date))
+
+variance_explained_stems <- r2_full[3,2] - r2_without_stems[3,2]
+variance_explained_date <- r2_full[3,2] - r2_without_date[3,2]
+
+cat("Variance explained by Stems:", variance_explained_stems, "\n")
+cat("Variance explained by Date_from_start:", variance_explained_date, "\n")
+#does not sound right!
 
 #model test----
 #test if model assumptions are met and test model for fit:

@@ -35,7 +35,7 @@ mosaicplot(Overview ~ Group, data = polli,
            col = c("darkgreen", "orange"),
            cex = 1.2)
 
-#only species with more than 5 occurances
+#only species with more than 5 occurrences
 mosaicplot(Species ~ Group, data = comb_all2,
            las = 2,
            main = "",
