@@ -98,12 +98,15 @@ model_without_date <- glmmTMB(Poll_per_hr ~ Stems
 (r2_without_stems <- r.squaredGLMM(model_without_stems))
 (r2_without_date <- r.squaredGLMM(model_without_date))
 
-variance_explained_stems <- r2_full[3,2] - r2_without_stems[3,2]
-variance_explained_date <- r2_full[3,2] - r2_without_date[3,2]
+variance_explained_stems <- r2_full[3,1] - r2_without_stems[3,1]
+variance_explained_date <- r2_full[3,1] - r2_without_date[3,1]
 
 cat("Variance explained by Stems:", variance_explained_stems, "\n")
 cat("Variance explained by Date_from_start:", variance_explained_date, "\n")
-#does not sound right!
+
+variance_explained_date + variance_explained_stems == r2_full[3,1]
+variance_explained_date + variance_explained_stems
+r2_full[3,1]
 
 #model test----
 #test if model assumptions are met and test model for fit:

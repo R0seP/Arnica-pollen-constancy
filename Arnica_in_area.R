@@ -21,7 +21,7 @@ area_subset <- subset(comb_all, Group == "area")    #only area samples
 Arnica5 <- subset(area_subset, P_ASTE.Arnica.montana >= 0.05)   #only samples with >= 5% Arnica
 Arnica5_counts <- Arnica5 %>%
   count(Site)     #create df that contains counts of occurrences of area pollinators with >= 5% Arnica
-missing_sites <- data.frame(Site = c(3,5,9,13,15), n = rep(0,5)) 
+missing_sites <- data.frame(Site = c(3,5,13,15), n = rep(0,4)) 
 Arnica5_counts <- rbind(Arnica5_counts, missing_sites) #add sites that have no occurrences
 Arnica5_counts <- Arnica5_counts[order(Arnica5_counts$Site), ] #sort by site
 Arnica5_counts$Stems <- comb1$Stems #add Arnica population size

@@ -114,14 +114,14 @@ testOutliers(residuals_constancy)
 #r-squared value:
 r.squaredGLMM(m_constancy)
 
-#predict proportion of filled seeds for 10, 100, and 500 stems
+#predict proportion of constant samples for 10, 100, and 500 stems
 pred_data_constancy <- data.frame(Stems = c(10, 100, 500))
 predictions_constancy <- predict(m_constancy, newdata = pred_data_constancy, type = "response", re.form = NA, se.fit = T)
 
 pred_data_constancy$Pred.Arnica.constant <- predictions_constancy$fit
 pred_data_constancy$Pred.Arnica.constant_SE <- predictions_constancy$se.fit
 pred_data_constancy
-#for 10 stems, 16.0 (+/- 2.8)% of sample are expected to be Arnica-constant, for 
+#for 10 stems, 16.0 (+/- 2.8)% of samples are expected to be Arnica-constant, for 
 #100 stems 24.4 (+/- 1.9)% of samples, and for 500 stems 31.8 (+/- 3.8)% of 
 #samples are expected to be constant on Arnica (have more than 50% Arnica and
 #up to three effective pollen species.

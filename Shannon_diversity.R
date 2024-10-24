@@ -127,12 +127,12 @@ testOutliers(residuals_Shannon2)
 
 
 #effect sizes----
-r.squaredGLMM(m_Shannon)
+r.squaredGLMM(m_Shannon2)
 #predict proportion of Arnica-associated pollinators in community
 #for 10, 100, and 500 stems for pollinators caught on Arnica flowers and in surrouding area
 pred_data_Shannon2 <- data.frame(Stems = rep(c(10, 100, 500),2), 
                                 Group = c(rep("area",3),rep("flower",3)))
-predictions_Shannon2 <- predict(m_Shannon2, newdata = pred_data_Shannon, type = "response", re.form = NA, se.fit = T)
+predictions_Shannon2 <- predict(m_Shannon2, newdata = pred_data_Shannon2, type = "response", re.form = NA, se.fit = T)
 
 pred_data_Shannon2$Pred.Poll_diver <- predictions_Shannon2$fit
 pred_data_Shannon2$Pred.POll_diver_SE <- predictions_Shannon2$se.fit
