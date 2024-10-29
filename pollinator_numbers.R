@@ -70,7 +70,7 @@ AICTab
 
 r.squaredGLMM(m1)
 r.squaredGLMM(m2)
-#model m1 without log also  a little bit higher than r2, use that model!
+#model m1 without log also a little bit higher than r2, use that model!
 
 
 #model----
@@ -88,30 +88,11 @@ eff.plot(eff_poll_nr, plotdata = T,
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
-#variance partitioning
-model_without_stems <- glmmTMB(Poll_per_hr ~ Date_from_start
-                               + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
-model_without_date <- glmmTMB(Poll_per_hr ~ Stems
-                              + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
-
-(r2_full <- r.squaredGLMM(m_poll_nr))
-(r2_without_stems <- r.squaredGLMM(model_without_stems))
-(r2_without_date <- r.squaredGLMM(model_without_date))
-
-variance_explained_stems <- r2_full[3,1] - r2_without_stems[3,1]
-variance_explained_date <- r2_full[3,1] - r2_without_date[3,1]
-
-cat("Variance explained by Stems:", variance_explained_stems, "\n")
-cat("Variance explained by Date_from_start:", variance_explained_date, "\n")
-
-variance_explained_date + variance_explained_stems == r2_full[3,1]
-variance_explained_date + variance_explained_stems
-r2_full[3,1]
 
 #model test----
 #test if model assumptions are met and test model for fit:
-qqnorm(resid(m_poll_nr)) #issues at higher theoretical quantiles
-hist(resid(m_poll_nr)) #very normal residual distribution except for few high outliers
+#qqnorm(resid(m_poll_nr)) #issues at higher theoretical quantiles
+#hist(resid(m_poll_nr)) #very normal residual distribution except for few high outliers
 
 ks.test(resid(m_poll_nr), "pnorm", mean = mean(resid(m_poll_nr)), sd = sd(resid(m_poll_nr)))
 #ks test non-significant, non-normality then fine?
@@ -121,6 +102,60 @@ plot(residuals_poll_nr)
 testOutliers(residuals_poll_nr)
 #no outliers significant, but combined adjusted quantile test significant, 
 #there are residuals vs predictions quantile deviations
+
+
+#test different models
+m1 <- glmmTMB(Poll_per_hr ~ Stems + Date_from_start
+              + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
+
+m2 <- glmmTMB(log(Poll_per_hr) ~ Stems + Date_from_start
+              + (1|time_quali) + (1|Site), data = poll_nr, family = poisson)
+
+mlist = list(m1, m2)
+AICTab = AIC(m1, m2) 
+AICTab$logLik = unlist(lapply(mlist, logLik)) 
+AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
+AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
+lh = exp(-0.5*AICTab$delta)
+AICTab$w = round(lh/sum(lh), 2)
+AICTab
+#model m2 with log transformation ranked much higher
+
+r.squaredGLMM(m1)
+r.squaredGLMM(m2)
+#m1 without the transformation higher r2
+
+#try same model with gaussian distribution (because non-integer counts in 
+#poisson model with the log transformation):
+m3 <- glmmTMB(log(Poll_per_hr) ~ Stems + Date_from_start
+              + (1|time_quali) + (1|Site), data = poll_nr, family = gaussian)
+
+summary(m3)
+
+eff_m3 <- effect("Stems",m3, xlevels = 50)  
+eff.plot(eff_m3, plotdata = T,
+         ylab = "Number of pollinators per hour",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
+eff_m3_date <- effect("Date_from_start",m3, xlevels = 50)  
+eff.plot(eff_m3_date, plotdata = T,
+         ylab = "Number of pollinators per hour",
+         xlab = "Date from start",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
+
+#test if model assumptions are met and test model for fit:
+qqnorm(resid(m3)) #looks nice, certainly better than poisson model before
+hist(resid(m3)) #residual distribution looks normal
+
+ks.test(resid(m3), "pnorm", mean = mean(resid(m3)), sd = sd(resid(m3)))
+#ks test non-significant
+
+residuals_m3 <- simulateResiduals(fittedModel = m3)
+plot(residuals_m3)
+testOutliers(residuals_m3)
+#residuals vs predicted and outlier test significant
 
 
 #effect size----
