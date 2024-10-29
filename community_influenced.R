@@ -106,10 +106,41 @@ r.squaredGLMM(m_community2)
 #qqnorm(resid(m_community)) #qqplot looks good
 #qqnorm(resid(m_community2))
 
-residuals_community2 <- simulateResiduals(fittedModel = m_community2)
+residuals_community2 <- simulateResiduals(fittedModel = m2)
 plot(residuals_community2)
 testOutliers(residuals_community2)
 #residual vs predicted significant deviations
+
+#try model with quadratic component:
+#selection: 
+m1 <- glmmTMB(cbind(Arnica_associated_noMel, Area_associated) ~ log(Stems), 
+              data = comb1, family = binomial)
+m2 <- glmmTMB(cbind(Arnica_associated_noMel, Area_associated) ~ log(Stems)
+              + I((Stems)^2), data = comb1, family = binomial)
+mlist = list(m1, m2)
+AICTab = AIC(m1, m2) 
+AICTab$logLik = unlist(lapply(mlist, logLik)) 
+AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
+AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
+lh = exp(-0.5*AICTab$delta)
+AICTab$w = round(lh/sum(lh), 2)
+AICTab
+#model m1 with quadratic term ranked slightly higher
+
+r.squaredGLMM(m1)
+r.squaredGLMM(m2)
+#much higher r2 of model with quadratic term
+
+summary(m2)
+
+#plot model with quadratic component
+eff_community2_quad <- effect("log(Stems)",m2, xlevels = 50)  
+eff.plot(eff_community2_quad, plotdata = T,
+         ylab = "Proportion of Arnica-associated pollinators",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "community composition without Meligethes",
+         ylim.data = T, overlay = F, col.data = 3)
+#looks overfitted!
 
 
 ###effect sizes2----
