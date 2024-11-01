@@ -7,6 +7,7 @@ library(vegan)
 library(tidyverse)
 
 #get data----
+source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_preparation.R", echo = TRUE)
 adj <- read.csv("adj_new.csv", h = T)
 polli <- read.csv("pollinators.csv", h = T) 
 
@@ -22,6 +23,10 @@ nmds_pollen <- inner_join(nmds_pollen, polli, by = c("Site", "Pollinator")) #add
 nmds_pollen <- nmds_pollen[,-c(2:7,46,48)]  #delete not needed columns
 nmds_pollen <- nmds_pollen[,c(1,37:40,2:36)] #resort 
 nmds_pollen <- na.omit(nmds_pollen)
+
+work_species <- as.list(imp_species$Species)
+nmds_pollen <- nmds_pollen[nmds_pollen$Species %in% work_species, ]
+#exclude all but the 22 "important species" with more than 5 obseravtions
 
 #NMDS----
 NMDS <- metaMDS(as.matrix(nmds_pollen[,6:40]), distance = "bray", k = 3, autotransform = TRUE, trymax=100)
@@ -59,9 +64,22 @@ for(g in levels(nmds.scores$Species)){
 
 
 # create ggplot
+red_palette <- c("#FF0000", "#E60000", "#CC0000", "#B30000", "#990000", "#800000", "#660000") #bees
+green_palette <- c("#66C2A5", "#1B9E77", "#00441B") #butterflies
+blue_palette <- c("#1F77B4", "#6BAED6", "#9ECAE1", "#C6DBEF", "#DEEBF7") #beetles
+yellow_palette <- c("#FFFF00", "#FFEA00", "#FFD700", "#FFC300", "#FFB000", "#FF9C00", "#FF8800") #flies
+
+
+color_palette <- c("#FF0000", "#E60000", "#CC0000", "#B30000", "#990000", "#66C2A5", 
+                   "#1F77B4", "#FFFF00", "#FFEA00", "#FFD700", "#FFC300", "#FFB000", 
+                   "#800000", "#1B9E77", "#6BAED6", "#FF9C00", "#660000", "#00441B", 
+                   "#9ECAE1", "#C6DBEF", "#FF8800", "#DEEBF7")
+
 (NMDS_plot <- ggplot(data = nmds.scores, aes(NMDS1, NMDS2)) +
     geom_point(aes(color = Species, shape = Species)) + # adding different colors and shapes for different groups
     geom_path(data=ellipse_df, aes(x=NMDS1, y=NMDS2, colour=Distance), linewidth=1) + # adding covariance ellipses according to group
+    scale_shape_manual(values = 1:22) + # manually specifying shapes for 22 species
+    scale_color_manual(values = color_palette) + # manually specifying colors for 22 species
     guides(color = guide_legend(override.aes = list(linetype=c(NA,NA)))) + # removes lines from legend
     theme_bw() + # adding theme
     theme(panel.grid = element_blank(), # remove background grid
@@ -69,13 +87,7 @@ for(g in levels(nmds.scores$Species)){
           legend.title = element_text(size = 14), # increase legend title size
           axis.text = element_text(size = 12), # increase axis text size
           axis.title = element_text(size = 14)))  # increase axis title size) 
-#    scale_color_manual(name = "Group", # legend title
-#                       labels = c("area", "flower"), # adjusting legend labels
-#                       values = c("darkgreen", "orange")) + # customizing colors
-#    scale_shape_manual("Group", # legend title
-#                       labels = c("area", "flower"), # adjusting legend labels
-#                       values = c(17, 19))+ # customizing shapes
-#    geom_text(aes(label = Site), hjust = 0.5, vjust = -0.5)) # adding site labels
+
 
 #permanova----
 # using a PERMANOVA (PERmutational Multivariate ANalysis Of VAriance) 
