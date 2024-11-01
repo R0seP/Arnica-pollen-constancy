@@ -105,7 +105,7 @@ m_Shannon2 <- glmmTMB(Shannon_diversity ~ log(Stems) + I(log(Stems)^2) + Group
                       + (1|Site) + (1|Species), data = dist_data)
 summary(m_Shannon2)
 
-eff_Shannon2 <- effect(c("log(Stems)","I(log(Stems)^2)"),m_Shannon2, xlevels = 50)  
+eff_Shannon2 <- effect("log(Stems)",m_Shannon2, xlevels = 50)  
 eff.plot(eff_Shannon2, plotdata = T,
          ylab = "Number of effective pollen species on one pollinator",
          xlab = "Population size Arnica (Nr Stems)",

@@ -37,7 +37,7 @@ for (i in 1:length(dist_data$filn)){
   dist_data[i, "Arnica_constant"] <- ifelse(dist_data[i,"Shannon_diversity"] <= 3 
                                       && dist_data[i, "P_ASTE.Arnica.montana"] > 0.5, 
                                       "yes", "no")
-}     #Add Arnica constancy
+}    #Add Arnica constancy
 head(dist_data$Arnica_constant)
 
 Arnica_constant <- subset(dist_data, Arnica_constant == "yes") #subset only Arnica constant samples

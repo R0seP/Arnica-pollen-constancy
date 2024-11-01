@@ -26,7 +26,7 @@ nmds_pollen <- na.omit(nmds_pollen)
 
 work_species <- as.list(imp_species$Species)
 nmds_pollen <- nmds_pollen[nmds_pollen$Species %in% work_species, ]
-#exclude all but the 22 "important species" with more than 5 obseravtions
+#exclude all but the 22 "important species" with more than 5 observations
 
 #NMDS----
 NMDS <- metaMDS(as.matrix(nmds_pollen[,6:40]), distance = "bray", k = 3, autotransform = TRUE, trymax=100)
