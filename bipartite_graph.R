@@ -39,10 +39,11 @@ names(network_sums) <- c("Pollinator", "Viburnum", "Apiaceae", "Arnica_montana",
 
 network <- as.matrix(network_sums[,2:36]) #turn network data into matrix for further use
 rownames(network) <- network_sums$Pollinator
+network <- t(network) #transmute matrix to have higher trophic level as column names
 
 ###visualize network----
 visweb(network)
-plotweb(network, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(network, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 ###calculate network metrics----
 #generate null models
@@ -121,6 +122,7 @@ process_site_data <- function(site_number, network_data) {
   
   site_matrix <- as.matrix(site_sums[,2:36]) # Turn network data into matrix for further use
   rownames(site_matrix) <- site_sums$Pollinator
+  site_matrix <- t(site_matrix) #transpose to make bipartite recognize higher trophic level
   
   return(site_matrix)
 }
@@ -158,83 +160,83 @@ webs <- list(web1, web2, web3, web4, web5, web6, web7, web8, web9, web10,
 ###visualize networks----
 #1
 visweb(web1)
-plotweb(web1, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web1, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #2
 visweb(web2)
-plotweb(web2, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web2, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #3
 visweb(web3)
-plotweb(web3, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web3, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #4
 visweb(web4)
-plotweb(web4, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web4, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #5
 visweb(web5)
-plotweb(web5, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web5, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #6
 visweb(web6)
-plotweb(web6, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web6, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #7
 visweb(web7)
-plotweb(web7, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web7, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #8
 visweb(web8)
-plotweb(web8, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web8, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #9
 visweb(web9)
-plotweb(web9, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web9, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #10
 visweb(web10)
-plotweb(web10, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web10, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #11
 visweb(web11)
-plotweb(web11, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web11, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #12
 visweb(web12)
-plotweb(web12, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web12, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #13
 visweb(web13)
-plotweb(web13, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web13, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #14
 visweb(web14)
-plotweb(web14, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web14, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #15
 visweb(web15)
-plotweb(web15, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web15, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #16
 visweb(web16)
-plotweb(web16, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web16, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #17
 visweb(web17)
-plotweb(web17, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web17, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #18
 visweb(web18)
-plotweb(web18, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web18, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #19
 visweb(web19)
-plotweb(web19, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web19, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 #20
 visweb(web20)
-plotweb(web20, text.rot=90, col.low = "steelblue", col.high = "forestgreen")
+plotweb(web20, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 
 ###calculate network metrics----
@@ -253,3 +255,53 @@ str(network_metrics)
 
 #save network metrics for further analysis
 write.csv(network_metrics, "network_metrics.csv", row.names = F)
+
+
+#species -level metrics----
+species_metrics <- specieslevel(network)
+species_metrics
+
+###calculate PDI
+#(paired differences index) for Arnica at the different sites
+#PDI measures specialization, from 0 (generalist) to 1 (specialist)
+PDI_webs <- lapply(webs, specieslevel, index = 'PDI')
+
+#extract pdi only for Arnica
+plant_species <- "Arnica_montana"
+
+#vector to store PDI values
+pdi_values <- numeric(length(PDI_webs))
+
+#extract PDI for Arnica across all sites
+for (i in seq_along(PDI_webs)) {
+  site <- PDI_webs[[i]]
+  pdi_values[i] <- site$`lower level`[plant_species, "PDI"]
+}
+
+pdi_values
+
+###calculate PSI
+#(Pollination Service Index) for Arnica at different sites
+#PSI estimates how much of own pollen is carried onto every plant species by 
+#each pollinator species
+
+PSI_webs <- lapply(webs, specieslevel, index = 'PSI')
+
+#vector to store PDI values
+psi_values <- numeric(length(PDI_webs))
+
+#extract PDI for Arnica across all sites
+for (i in seq_along(PSI_webs)) {
+  site <- PSI_webs[[i]]
+  psi_values[i] <- site$`lower level`[plant_species, "PSI"]
+}
+
+psi_values
+
+###combine species-level metrics in data frame.
+species_metrics <- comb1[,1:2]
+species_metrics$Arnica_PDI <- as.numeric(pdi_values)
+species_metrics$Arnica_PSI <- as.numeric(psi_values)
+
+#save species-level metrics for further analysis
+write.csv(species_metrics, "species_metrics.csv", row.names = F)
