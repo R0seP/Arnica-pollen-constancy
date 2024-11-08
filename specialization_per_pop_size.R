@@ -135,3 +135,44 @@ residuals_PSI <- simulateResiduals(fittedModel = m_PSI)
 plot(residuals_PSI)
 testOutliers(residuals_PSI)
 #no significance
+
+
+#species level d'----
+#standardized d' against null models
+###model selection----
+m1 <- glmmTMB(Arnica_delta_d ~ Stems, data = species_metrics)
+m2 <- glmmTMB(Arnica_delta_d ~ log(Stems), data = species_metrics)
+
+mlist = list(m1, m2)
+AICTab = AIC(m1, m2) 
+AICTab$logLik = unlist(lapply(mlist, logLik)) 
+AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
+AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
+lh = exp(-0.5*AICTab$delta)
+AICTab$w = round(lh/sum(lh), 2)
+AICTab
+#model m2 with log ranked higher
+
+r.squaredGLMM(m1)
+r.squaredGLMM(m2)
+#model m2 with log slightly higher r2 (though still very low!)
+
+###model----
+m_d <-  glmmTMB(Arnica_delta_d ~ log(Stems), data = species_metrics)
+summary(m_d)
+
+eff_d <- effect("log(Stems)",m_d, xlevels = 50)  
+eff.plot(eff_d, plotdata = T,
+         ylab = "Blüthgen's d (specialization index) of Arnica",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
+
+#test if model assumptions are met and test model for fit:
+qqnorm(resid(m_d)) #looks good
+hist(resid(m_d)) #residual distribution looks approaching normal
+
+residuals_d <- simulateResiduals(fittedModel = m_d)
+plot(residuals_d)
+testOutliers(residuals_d)
+#no significance
