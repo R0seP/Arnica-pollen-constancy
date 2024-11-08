@@ -257,7 +257,7 @@ str(network_metrics)
 write.csv(network_metrics, "network_metrics.csv", row.names = F)
 
 
-#species -level metrics----
+###species -level metrics----
 species_metrics <- specieslevel(network)
 species_metrics
 
@@ -298,10 +298,202 @@ for (i in seq_along(PSI_webs)) {
 
 psi_values
 
+###calculate Blüthgen's d
+#(specialization index) for Arnica at different sites
+
+d_webs <- lapply(webs, specieslevel, index = 'd')
+
+#vector to store d values
+d_values <- numeric(length(d_webs))
+
+#extract d-value for Arnica across all sites
+for (i in seq_along(d_webs)) {
+  site <- d_webs[[i]]
+  d_values[i] <- site$`lower level`[plant_species, "d"]
+}
+
+d_values
+
+#null models for all webs
+set.seed(2800)  # For reproducibility
+null_models1 <- replicate(1000, r2dtable(1, rowSums(web1), colSums(web1))[[1]])
+null_models2 <- replicate(1000, r2dtable(1, rowSums(web2), colSums(web2))[[1]])
+null_models3 <- replicate(1000, r2dtable(1, rowSums(web3), colSums(web3))[[1]])
+null_models4 <- replicate(1000, r2dtable(1, rowSums(web4), colSums(web4))[[1]])
+null_models5 <- replicate(1000, r2dtable(1, rowSums(web5), colSums(web5))[[1]])
+null_models6 <- replicate(1000, r2dtable(1, rowSums(web6), colSums(web6))[[1]])
+null_models7 <- replicate(1000, r2dtable(1, rowSums(web7), colSums(web7))[[1]])
+null_models8 <- replicate(1000, r2dtable(1, rowSums(web8), colSums(web8))[[1]])
+null_models9 <- replicate(1000, r2dtable(1, rowSums(web9), colSums(web9))[[1]])
+null_models10 <- replicate(1000, r2dtable(1, rowSums(web10), colSums(web10))[[1]])
+null_models11 <- replicate(1000, r2dtable(1, rowSums(web11), colSums(web11))[[1]])
+null_models12 <- replicate(1000, r2dtable(1, rowSums(web12), colSums(web12))[[1]])
+null_models13 <- replicate(1000, r2dtable(1, rowSums(web13), colSums(web13))[[1]])
+null_models14 <- replicate(1000, r2dtable(1, rowSums(web14), colSums(web14))[[1]])
+null_models15 <- replicate(1000, r2dtable(1, rowSums(web15), colSums(web15))[[1]])
+null_models16 <- replicate(1000, r2dtable(1, rowSums(web16), colSums(web16))[[1]])
+null_models17 <- replicate(1000, r2dtable(1, rowSums(web17), colSums(web17))[[1]])
+null_models18 <- replicate(1000, r2dtable(1, rowSums(web18), colSums(web18))[[1]])
+null_models19 <- replicate(1000, r2dtable(1, rowSums(web19), colSums(web19))[[1]])
+null_models20 <- replicate(1000, r2dtable(1, rowSums(web20), colSums(web20))[[1]])
+
+#calculate Blüthgen's d for each null model
+null_d_1 <- apply(null_models1, 3, function(x) specieslevel(x, index = "d"))
+null_d_2 <- apply(null_models2, 3, function(x) specieslevel(x, index = "d"))
+null_d_3 <- apply(null_models3, 3, function(x) specieslevel(x, index = "d"))
+null_d_4 <- apply(null_models4, 3, function(x) specieslevel(x, index = "d"))
+null_d_5 <- apply(null_models5, 3, function(x) specieslevel(x, index = "d"))
+null_d_6 <- apply(null_models6, 3, function(x) specieslevel(x, index = "d"))
+null_d_7 <- apply(null_models7, 3, function(x) specieslevel(x, index = "d"))
+null_d_8 <- apply(null_models8, 3, function(x) specieslevel(x, index = "d"))
+null_d_9 <- apply(null_models9, 3, function(x) specieslevel(x, index = "d"))
+null_d_10 <- apply(null_models10, 3, function(x) specieslevel(x, index = "d"))
+null_d_11 <- apply(null_models11, 3, function(x) specieslevel(x, index = "d"))
+null_d_12 <- apply(null_models12, 3, function(x) specieslevel(x, index = "d"))
+null_d_13 <- apply(null_models13, 3, function(x) specieslevel(x, index = "d"))
+null_d_14 <- apply(null_models14, 3, function(x) specieslevel(x, index = "d"))
+null_d_15 <- apply(null_models15, 3, function(x) specieslevel(x, index = "d"))
+null_d_16 <- apply(null_models16, 3, function(x) specieslevel(x, index = "d"))
+null_d_17 <- apply(null_models17, 3, function(x) specieslevel(x, index = "d"))
+null_d_18 <- apply(null_models18, 3, function(x) specieslevel(x, index = "d"))
+null_d_19 <- apply(null_models19, 3, function(x) specieslevel(x, index = "d"))
+null_d_20 <- apply(null_models20, 3, function(x) specieslevel(x, index = "d"))
+
+#extract d-values only for Arnica
+Arnica_null_d1 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d1[i] <- null_d_1[[i]][[2]]$d[3]
+}
+
+Arnica_null_d2 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d2[i] <- null_d_2[[i]][[2]]$d[3]
+}
+
+Arnica_null_d3 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d3[i] <- null_d_3[[i]][[2]]$d[3]
+}
+
+Arnica_null_d4 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d4[i] <- null_d_4[[i]][[2]]$d[3]
+}
+
+Arnica_null_d5 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d5[i] <- null_d_5[[i]][[2]]$d[3]
+}
+
+Arnica_null_d6 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d6[i] <- null_d_6[[i]][[2]]$d[3]
+}
+
+Arnica_null_d7 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d7[i] <- null_d_7[[i]][[2]]$d[3]
+}
+
+Arnica_null_d8 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d8[i] <- null_d_8[[i]][[2]]$d[3]
+}
+
+Arnica_null_d9 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d9[i] <- null_d_9[[i]][[2]]$d[3]
+}
+
+Arnica_null_d10 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d10[i] <- null_d_10[[i]][[2]]$d[3]
+}
+
+Arnica_null_d11 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d11[i] <- null_d_11[[i]][[2]]$d[3]
+}
+
+Arnica_null_d12 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d12[i] <- null_d_12[[i]][[2]]$d[3]
+}
+
+Arnica_null_d13 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d13[i] <- null_d_13[[i]][[2]]$d[3]
+}
+
+Arnica_null_d14 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d14[i] <- null_d_14[[i]][[2]]$d[3]
+}
+
+Arnica_null_d15 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d15[i] <- null_d_15[[i]][[2]]$d[3]
+}
+
+Arnica_null_d16 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d16[i] <- null_d_16[[i]][[2]]$d[3]
+}
+
+Arnica_null_d17 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d17[i] <- null_d_17[[i]][[2]]$d[3]
+}
+
+Arnica_null_d18 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d18[i] <- null_d_18[[i]][[2]]$d[3]
+}
+
+Arnica_null_d19 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d19[i] <- null_d_19[[i]][[2]]$d[3]
+}
+
+Arnica_null_d20 <- rep(0, 1000)
+for(i in 1:1000){
+  Arnica_null_d20[i] <- null_d_20[[i]][[2]]$d[3]
+}
+
+#calculate delta_d, delta transformation by standardizing d against null models
+delta_d1 <- mean(Arnica_null_d1) - d_values[1]
+delta_d2 <- mean(Arnica_null_d2) - d_values[2]
+delta_d3 <- mean(Arnica_null_d3) - d_values[3]
+delta_d4 <- mean(Arnica_null_d4) - d_values[4]
+delta_d5 <- mean(Arnica_null_d5) - d_values[5]
+delta_d6 <- mean(Arnica_null_d6) - d_values[6]
+delta_d7 <- mean(Arnica_null_d7) - d_values[7]
+delta_d8 <- mean(Arnica_null_d8) - d_values[8]
+delta_d9 <- mean(Arnica_null_d9) - d_values[9]
+delta_d10 <- mean(Arnica_null_d10) - d_values[10]
+delta_d11 <- mean(Arnica_null_d11) - d_values[11]
+delta_d12 <- mean(Arnica_null_d12) - d_values[12]
+delta_d13 <- mean(Arnica_null_d13) - d_values[13]
+delta_d14 <- mean(Arnica_null_d14) - d_values[14]
+delta_d15 <- mean(Arnica_null_d15) - d_values[15]
+delta_d16 <- mean(Arnica_null_d16) - d_values[16]
+delta_d17 <- mean(Arnica_null_d17) - d_values[17]
+delta_d18 <- mean(Arnica_null_d18) - d_values[18]
+delta_d19 <- mean(Arnica_null_d19) - d_values[19]
+delta_d20 <- mean(Arnica_null_d20) - d_values[20]
+
+delta_d <- list(delta_d1, delta_d2, delta_d3, delta_d4, delta_d5, delta_d6, delta_d7,
+                delta_d8, delta_d9, delta_d10, delta_d11, delta_d12, delta_d13, delta_d14,
+                delta_d15, delta_d16, delta_d17, delta_d18, delta_d19, delta_d20)
+
 ###combine species-level metrics in data frame.
 species_metrics <- comb1[,1:2]
 species_metrics$Arnica_PDI <- as.numeric(pdi_values)
 species_metrics$Arnica_PSI <- as.numeric(psi_values)
+species_metrics$Arnica_d <- as.numeric(d_values)
+species_metrics$Arnica_delta_d <- abs(as.numeric(delta_d))
+#by taking the absolute value of delta d webs that had high d-values now again 
+#have high d-values because null d's were very small
 
 #save species-level metrics for further analysis
 write.csv(species_metrics, "species_metrics.csv", row.names = F)
