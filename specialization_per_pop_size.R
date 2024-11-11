@@ -176,3 +176,17 @@ residuals_d <- simulateResiduals(fittedModel = m_d)
 plot(residuals_d)
 testOutliers(residuals_d)
 #no significance
+
+#compare to model with just d (not standardized)
+m_comparsion_d <- glmmTMB(Arnica_d ~ log(Stems), data = species_metrics)
+summary(m_comparsion_d)
+summary(m_d)
+
+eff_comp_d <- effect("log(Stems)",m_comparsion_d, xlevels = 50)  
+eff.plot(eff_comp_d, plotdata = T,
+         ylab = "Blüthgen's d (specialization index) of Arnica",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
+#as expected, nearly the same since null model d so tiny that standardized
+#and not standardized d nearly the same
