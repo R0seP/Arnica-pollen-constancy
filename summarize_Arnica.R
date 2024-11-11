@@ -72,22 +72,37 @@ names(species_means_area) <- c("Species", "Perc.Arnica_in_area")
 summary <- left_join(summary, species_means_area, by = "Species")
 
 
+#calculate how many pollen grains were carried on average
+n_pollen_means <- comb_all2 %>%
+  group_by(Species) %>%
+  summarize(mean_value = mean(nPoll, na.rm = TRUE))
+
+n_pollen_means <- as.data.frame(n_pollen_means)
+names(n_pollen_means) <- c("Species", "Average_n_pollen")
+
+summary <- left_join(summary, n_pollen_means, by = "Species")
+
+
+
 #add row with totals
 sum_row <- colSums(summary[,2:4], na.rm = TRUE)
 
 overall_mean <- mean(summary$Perc.Arnica_total)
 Arnica_mean <- mean(summary$Perc.Arnica_on_Arnica, na.rm = TRUE)
 Area_mean <- mean(summary$Perc.Arnica_in_area, na.rm = TRUE)
+n_poll_mean <- mean(summary$Average_n_poll, na.rm = TRUE)
 
-sum_row <- c("total", sum_row, overall_mean, Arnica_mean, Area_mean)
+sum_row <- c("total", sum_row, overall_mean, Arnica_mean, Area_mean, n_poll_mean)
 
 summary <- rbind(summary, sum_row)
+
 summary$Nr.Pollinators_total <- as.numeric(summary$Nr.Pollinators_total)
 summary$Nr.Pollinators_on_Arnica <- as.numeric(summary$Nr.Pollinators_on_Arnica)
 summary$Nr.Pollinators_in_area <- as.numeric(summary$Nr.Pollinators_in_area)
 summary$Perc.Arnica_total <- as.numeric(summary$Perc.Arnica_total)
 summary$Perc.Arnica_on_Arnica <- as.numeric(summary$Perc.Arnica_on_Arnica)
 summary$Perc.Arnica_in_area <- as.numeric(summary$Perc.Arnica_in_area)
+summary$Average_n_poll <- as.numeric(summary$Average_n_poll)
 
 #multiply percentage columns with 100 to get percent
 summary$Perc.Arnica_total <- summary$Perc.Arnica_total * 100
