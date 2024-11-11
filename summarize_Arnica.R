@@ -102,7 +102,7 @@ summary$Nr.Pollinators_in_area <- as.numeric(summary$Nr.Pollinators_in_area)
 summary$Perc.Arnica_total <- as.numeric(summary$Perc.Arnica_total)
 summary$Perc.Arnica_on_Arnica <- as.numeric(summary$Perc.Arnica_on_Arnica)
 summary$Perc.Arnica_in_area <- as.numeric(summary$Perc.Arnica_in_area)
-summary$Average_n_poll <- as.numeric(summary$Average_n_poll)
+summary$Average_n_pollen <- as.numeric(summary$Average_n_pollen)
 
 #multiply percentage columns with 100 to get percent
 summary$Perc.Arnica_total <- summary$Perc.Arnica_total * 100
