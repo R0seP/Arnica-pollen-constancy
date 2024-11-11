@@ -89,5 +89,10 @@ summary$Perc.Arnica_total <- as.numeric(summary$Perc.Arnica_total)
 summary$Perc.Arnica_on_Arnica <- as.numeric(summary$Perc.Arnica_on_Arnica)
 summary$Perc.Arnica_in_area <- as.numeric(summary$Perc.Arnica_in_area)
 
+#multiply percentage columns with 100 to get percent
+summary$Perc.Arnica_total <- summary$Perc.Arnica_total * 100
+summary$Perc.Arnica_on_Arnica <- summary$Perc.Arnica_on_Arnica * 100
+summary$Perc.Arnica_in_area <- summary$Perc.Arnica_in_area * 100
+
 #save summary table as .csv
 write.csv(summary, "pollinators_summarized.csv", row.names = F)
