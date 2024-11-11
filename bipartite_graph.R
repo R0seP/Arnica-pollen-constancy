@@ -42,8 +42,9 @@ rownames(network) <- network_sums$Pollinator
 network <- t(network) #transmute matrix to have higher trophic level as column names
 
 ###visualize network----
-visweb(network)
-plotweb(network, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
+visweb(network, labsize = 1.5)
+plotweb(network, text.rot=90, col.low = "forestgreen", col.high = "steelblue",
+        labsize = 1.5)
 
 ###calculate network metrics----
 #generate null models
