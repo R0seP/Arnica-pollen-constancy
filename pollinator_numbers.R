@@ -81,6 +81,11 @@ summary(m_poll_nr)
 check_overdispersion(m_poll_nr)
 #no overdispersion
 
+#find number of degrees of freedom
+library(car)
+anova <- Anova(m_poll_nr, type = "III")  # Type III ANOVA table
+print(anova)
+
 eff_poll_nr <- effect("Stems",m_poll_nr, xlevels = 50)  
 eff.plot(eff_poll_nr, plotdata = T,
          ylab = "Number of pollinators per hour",

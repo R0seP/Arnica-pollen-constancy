@@ -92,11 +92,16 @@ m_community2 <- glmmTMB(cbind(Arnica_associated_noMel, Area_associated) ~ log(St
                        data = comb1, family = binomial)
 summary(m_community2)
 
+#find number of degrees of freedom
+library(car)
+anova <- Anova(m_community2, type = "III")  # Type III ANOVA table
+print(anova)
+
 eff_community2 <- effect("log(Stems)",m_community2, xlevels = 50)  
 eff.plot(eff_community2, plotdata = T,
          ylab = "Proportion of Arnica-associated pollinators",
          xlab = "Population size Arnica (Nr Stems)",
-         main = "community composition without Meligethes",
+         main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
 #variance partitioning
