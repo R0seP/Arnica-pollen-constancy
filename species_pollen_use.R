@@ -79,23 +79,38 @@ m2 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Stems * Species + Stems * Group
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m2)
 check_overdispersion(m2)
+check_collinearity(m2)
 #no longer rank deficient. All interactions significant.
+#still multicollinearity issues
 
-m3 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Species + log(Stems) * Group
+m2.2 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Species + Stems * Group
+                + (1|Site), family = binomial,
+                data = comb_all2,
+                control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+summary(m2.2)
+check_overdispersion(m2.2)
+check_collinearity(m2.2)
+#no multicollinearity issues anymore
+
+m3 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Species + log(Stems) * Group
               + (1|Site), family = binomial,
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m3)
+check_overdispersion(m3)
+check_collinearity(m3)
+#multicollinearity issues
 
-mlist = list(m1, m2, m3)
-AICTab = AIC(m1, m2, m3) 
+mlist = list(m1, m2, m2.2, m3)
+AICTab = AIC(m1, m2, m2.2, m3) 
 AICTab$logLik = unlist(lapply(mlist, logLik)) 
 AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
 AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
 lh = exp(-0.5*AICTab$delta)
 AICTab$w = round(lh/sum(lh), 2)
 AICTab
-#for binomial models: m1 < m3 < m2, but m1 multicollinearity issues, so m3 best
+#for binomial models: m1 < m2 < m2.2 < m3, 
+#all but m2.2 multicollinearity issues
 
 #try poisson model because fit issues with binomial model detected
 m4 <- glmmTMB(Nr_Arnica ~ Stems * Species + Stems * Group + offset(log(nPoll))
@@ -103,27 +118,32 @@ m4 <- glmmTMB(Nr_Arnica ~ Stems * Species + Stems * Group + offset(log(nPoll))
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m4)
-#here, interaction Stems and Group not significant, so take out
+
 check_overdispersion(m4)
 #overdispersed
+check_collinearity(m4)
+#species and stems collinear
 
 m5 <- glmmTMB(Nr_Arnica ~ log(Stems) * Species + log(Stems) * Group + offset(log(nPoll))
               + (1|Site), family = poisson,
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m5)
-#here, interaction Stems and Group significant
+
 check_overdispersion(m5)
 #overdispersed
+check_collinearity(m5)
+#species and stems, group and stems collinear
 
-m6 <- glmmTMB(Nr_Arnica ~ Stems * Species + Group + offset(log(nPoll))
+m6 <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll))
               + (1|Site), family = poisson,
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m6)
 check_overdispersion(m6)
 #overdispersed
-
+check_collinearity(m6)
+#no collinearity
 
 #negative binomial models because of overdispersion
 m7 <- glmmTMB(Nr_Arnica ~ Stems * Species + Stems * Group + offset(log(nPoll))
@@ -132,7 +152,9 @@ m7 <- glmmTMB(Nr_Arnica ~ Stems * Species + Stems * Group + offset(log(nPoll))
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m7)
 check_overdispersion(m7)
-#no overdipsersion anymore, interaction stems and group non significant
+#no overdipsersion anymore
+check_collinearity(m7)
+#species and stems collinear
 
 m8 <- glmmTMB(Nr_Arnica ~ log(Stems) * Species + log(Stems) * Group + offset(log(nPoll))
               + (1|Site), family = nbinom2,
@@ -140,35 +162,74 @@ m8 <- glmmTMB(Nr_Arnica ~ log(Stems) * Species + log(Stems) * Group + offset(log
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m8)
 check_overdispersion(m8)
-#no overdispersion, interaction log(Stems) and group significant
+#no overdispersion
+check_collinearity(m8)
+#species and group, stems and group, stems and species collinear
 
-m9 <- glmmTMB(Nr_Arnica ~ Stems * Species + Group + offset(log(nPoll))
+m9 <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll))
               + (1|Site), family = nbinom2,
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m9)
 check_overdispersion(m9)
-#no overdispersion
+#underdispersed
+check_collinearity(m9)
+#no multicollinearity
+
+#try zero-inflated model to handle underdispersion
+m9.2 <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
+                data = comb_all2, family = nbinom2, ziformula = ~1,
+                control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+summary(m9.2)
+check_overdispersion(m9.2)
+#still underdispersed
+check_collinearity(m9.2)
+#no collinearity
+
+#generalized poisson also still underdispersed, conway-maxwell distribution
+#does not converge
+
+#try to model variance as a linear function (nbinom1) instead to handle underdispersion
+m9.3 <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll))
+              + (1|Site), family = nbinom1,
+              data = comb_all2,
+              control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+summary(m9.3)
+check_overdispersion(m9.3)
+#no overdispersion!
+check_collinearity(m9.3)
+#no collinearity!
 
 #try with nPoll as predictor, not as offset
-m10 <- glmmTMB(Nr_Arnica ~ (log(Stems) * Species + log(Stems) * Group) * log(nPoll)
+m10 <- glmmTMB(Nr_Arnica ~ (Stems * Species + Stems * Group) * log(nPoll)
                + (1|Site), family = nbinom2,
                data = comb_all2,
                control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m10)
 check_overdispersion(m10)
+check_collinearity(m10)
+#diverse multicollinearity, among others with n(Poll)
+
+m11 <- glmmTMB(Nr_Arnica ~ (Species + Stems * Group) * log(nPoll)
+               + (1|Site), family = nbinom2,
+               data = comb_all2,
+               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+summary(m11)
+check_overdispersion(m11)
+check_collinearity(m11)
+#still diverse multicollinearity, especially with n(Poll)
 
 
-mlist = list(m4, m5, m6, m7, m8, m9, m10)
-AICTab = AIC(m4, m5, m6, m7, m8, m9, m10) 
+mlist = list(m4, m5, m6, m7, m8, m9, m9.2, m9.3, m10, m11)
+AICTab = AIC(m4, m5, m6, m7, m8, m9, m9.2, m9.3, m10, m11) 
 AICTab$logLik = unlist(lapply(mlist, logLik)) 
 AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
 AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
 lh = exp(-0.5*AICTab$delta)
 AICTab$w = round(lh/sum(lh), 2)
 AICTab
-#ranked m10 < m8 < m9 < m7 < m5 < m4 < m6.  
-#Negative binomial over poisson over binomial.
+#ranked m8 < m9 < m9.2 < m11 < m7 < m10 < m9.3 < m5 < m4 < m6.  
+#All but m9.3 are over- or underdispersed or have multicollinearity issues
 
 r.squaredGLMM(m1)
 r.squaredGLMM(m2)
@@ -184,40 +245,35 @@ r.squaredGLMM(m10)
 #negative binomial models much lower r2.
 
 #model binomial----
-m_species <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Species + log(Stems) * Group
+m_species_binomial <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Species + Stems * Group
                      + (1|Site), family = binomial,
                      data = comb_all2,
                      control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
-summary(m_species)
+summary(m_species_binomial)
 
-eff_species <- effect("log(Stems)",m_species, xlevels = 50)  
-eff.plot(eff_species, plotdata = T,
+eff_species1 <- effect("Stems",m_species_binomial, xlevels = 50)  
+eff.plot(eff_species1, plotdata = T,
          ylab = "Proportion of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
          main = "binomial model",
          ylim.data = T, overlay = F, col.data = 3)
 
 #test if model assumptions are met and test model for fit:
-check_overdispersion(m_species)
-#no ovdispersion
 #qqnorm(resid(m_species))
-hist(resid(m_species))
-#qqplot does not look too good, residual normality seems fine
+hist(resid(m_species_binomial)) #residual normality seems fine
 
-
-residuals_species <- simulateResiduals(fittedModel = m_species)
-plot(residuals_species)
-testOutliers(residuals_species)
+residuals_binomial <- simulateResiduals(fittedModel = m_species_binomial)
+plot(residuals_binomial)
+testOutliers(residuals_binomial)
 #all significant, model fit issues?
 
 #model negative binomial----
-m_species2 <- glmmTMB(Nr_Arnica ~ (log(Stems) * Species + log(Stems) * Group) * log(nPoll)
-                      + (1|Site), family = nbinom2,
-                      data = comb_all2,
+m_species_negbi <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
+                      data = comb_all2, family = nbinom1, ziformula = ~1,
                       control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
-summary(m_species2)
+summary(m_species_negbi)
 
-eff_species2 <- effect(c("log(Stems)"),m_species2, xlevels = 50)
+eff_species2 <- effect(c("Stems"),m_species_negbi, xlevels = 50)
 eff.plot(eff_species2, plotdata = T,
          ylab = "Proportion of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
@@ -226,44 +282,16 @@ eff.plot(eff_species2, plotdata = T,
          col.data = 3)
 
 #test if model assumptions are met and test model for fit:
-check_overdispersion(m_species2)
-#no overdispersion
 #qqnorm(resid(m_species2))
-hist(resid(m_species2))
-#qqplot and histogram of residuals look terrible
+hist(resid(m_species_negbi)) #distribution of residuals has tail to negative values
 
-residuals_species2 <- simulateResiduals(fittedModel = m_species2)
-plot(residuals_species2)
-testOutliers(residuals_species2)
+residuals_negbi <- simulateResiduals(fittedModel = m_species_negbi)
+plot(residuals_negbi)
+testOutliers(residuals_negbi)
 #outlier test non-significant, residuals vs predicted looks a liittle better than 
 #for binomial model. KS test non-significant. Model fit issues?
+#generally a little better fit than binomial
 
-#model poisson----
-m_species3 <- glmmTMB(Nr_Arnica ~ log(Stems) * Species + log(Stems) * Group + offset(log(nPoll))
-                      + (1|Site), family = poisson,
-                      data = comb_all2,
-                      control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
-summary(m_species3)
-
-eff_species3 <- effect("log(Stems)",m_species3, xlevels = 50)  
-eff.plot(eff_species3, plotdata = T,
-         ylab = "Proportion of Arnica pollen carried",
-         xlab = "Population size Arnica (Nr Stems)",
-         main = "poisson model",
-         ylim.data = T, overlay = F, col.data = 3)
-
-#test if model assumptions are met and test model for fit:
-check_overdispersion(m_species3)
-#overdispersion
-#qqnorm(resid(m_species3))
-hist(resid(m_species3))
-#qqplot and histogram do not look good but better than negative binomial
-
-residuals_species3 <- simulateResiduals(fittedModel = m_species3)
-plot(residuals_species3)
-testOutliers(residuals_species3)
-#outlier test significant, residuals vs predicted looks worse than for negative
-#binomial model. KS test significant. Model fit issues?
 
 #effect sizes----
 
