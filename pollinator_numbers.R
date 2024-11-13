@@ -160,7 +160,7 @@ testOutliers(residuals_m3)
 
 #effect size----
 r.squaredGLMM(m_poll_nr)
-#predict proportion of Arnica-associated pollinators in community
+#predict numbers of pollinators caught per hour
 #for 10, 100, and 500 stems
 pred_data_poll_nr <- data.frame(Stems = c(10, 100, 500), 
                                 Date_from_start = rep(mean(poll_nr$Date_from_start),3))
@@ -173,3 +173,16 @@ pred_data_poll_nr
 #for 100 stems 11.7 (+/- 0.8) pollinators/hour, and for 500 stems
 # 13.0 (+/- 1.8) pollinators per hour are expected to be caught,
 #averaged over the number of days from start and the time of the day.
+
+
+#for sampling day 1, 10, and 20
+pred_data_poll_nr2 <- data.frame(Stems = rep(mean(poll_nr$Stems),3), 
+                                Date_from_start = c(1,10,20) )
+predictions_poll_nr2 <- predict(m_poll_nr, newdata = pred_data_poll_nr2, type = "response", re.form = NA, se.fit = T)
+
+pred_data_poll_nr2$Pred.Polli_Nr <- predictions_poll_nr2$fit
+pred_data_poll_nr2$Pred.POlli_Nr_SE <- predictions_poll_nr2$se.fit
+pred_data_poll_nr2
+#at sampling day 1, the model predicts 8.9 (+/- 1.2) pollinators to be caught per hour, 
+#at sampling day 10, it predicts 10.5 (+/- 0.9) pollinators/hr,
+#at sampling day 20 12.5 (+/- 0.9) pollinators/hr. 
