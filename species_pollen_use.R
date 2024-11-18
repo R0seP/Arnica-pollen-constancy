@@ -20,6 +20,20 @@ comb_all2$Species <- as.factor(comb_all2$Species)
 #comb_imp_species <- comb_all2 %>%
  # semi_join(imp_species, by = c("Species" = "Species"))
 
+#define special_log function that sets the log of 0 to 0 for transforming the 
+  #Nr of Arnica pollen with natural log later
+special_log <- function(x) {
+  sapply(x, function(element) {
+    if (is.na(element)) {
+      return(NA)
+    } else if (element == 0) {
+      return(0)
+    } else {
+      return(round(log(element)))
+    }
+  })
+}
+
 #data visualization----
 ggplot(comb_all2, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Species)) + 
   geom_boxplot()+
@@ -207,6 +221,7 @@ m10 <- glmmTMB(Nr_Arnica ~ (Stems * Species + Stems * Group) * log(nPoll)
                control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m10)
 check_overdispersion(m10)
+#no overdispersion
 check_collinearity(m10)
 #diverse multicollinearity, among others with n(Poll)
 
@@ -216,6 +231,7 @@ m11 <- glmmTMB(Nr_Arnica ~ (Species + Stems * Group) * log(nPoll)
                control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m11)
 check_overdispersion(m11)
+#underdispersed
 check_collinearity(m11)
 #still diverse multicollinearity, especially with n(Poll)
 
@@ -233,6 +249,7 @@ AICTab
 
 r.squaredGLMM(m1)
 r.squaredGLMM(m2)
+r.squaredGLMM(m2.2)
 r.squaredGLMM(m3)
 r.squaredGLMM(m4)
 r.squaredGLMM(m5)
@@ -240,9 +257,13 @@ r.squaredGLMM(m6)
 r.squaredGLMM(m7)
 r.squaredGLMM(m8)
 r.squaredGLMM(m9)
+r.squaredGLMM(m9.2)
+r.squaredGLMM(m9.3)
 r.squaredGLMM(m10)
-#does not currently work for m1, m4 and m6 slightly higher r2 than m5, then m7.
+r.squaredGLMM(m11)
 #negative binomial models much lower r2.
+#m9.3 (n.b. which does not have issues) 3rd lowest r2 (after other "9" models)
+#m2.2 (b. which does not have issues) lowest r2 of binomial models, still very high
 
 #model binomial----
 m_species_binomial <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Species + Stems * Group
@@ -269,8 +290,8 @@ testOutliers(residuals_binomial)
 
 #model negative binomial----
 m_species_negbi <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
-                      data = comb_all2, family = nbinom1, ziformula = ~1,
-                      control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+                           data = comb_all2, family = nbinom1,
+                           control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m_species_negbi)
 
 eff_species2 <- effect(c("Stems"),m_species_negbi, xlevels = 50)
@@ -288,10 +309,31 @@ hist(resid(m_species_negbi)) #distribution of residuals has tail to negative val
 residuals_negbi <- simulateResiduals(fittedModel = m_species_negbi)
 plot(residuals_negbi)
 testOutliers(residuals_negbi)
-#outlier test non-significant, residuals vs predicted looks a liittle better than 
-#for binomial model. KS test non-significant. Model fit issues?
-#generally a little better fit than binomial
 
+
+#try with log of response:
+m_species_negbi2 <- glmmTMB(special_log(Nr_Arnica) ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
+                            data = comb_all2, family = nbinom1,
+                            control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+summary(m_species_negbi2)
+
+eff_species3 <- effect(c("Stems"),m_species_negbi2, xlevels = 50)
+eff.plot(eff_species3, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "negative binomial model",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+#test if model assumptions are met and test model for fit:
+#qqnorm(resid(m_species2))
+hist(resid(m_species_negbi2)) #distribution of residuals has tail to negative values
+
+residuals_negbi2 <- simulateResiduals(fittedModel = m_species_negbi2)
+plot(residuals_negbi2)
+testOutliers(residuals_negbi2)
+#outlier test non-significant, residuals vs predicted looks strange, KS test 
+#significant. Seems worse than model that uses normal response!
 
 #effect sizes----
 
@@ -530,15 +572,17 @@ testOutliers(residuals_Empis_tessellata)
 ###Eristalis sp----
 Eristalis <- subset(comb_all2, Species == "Eristalis sp")
 
-mEristalis <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
-                             + (1|Site), family = binomial,
-                             data = Eristalis,
-                             control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+Eristalis <- Eristalis[Eristalis$Nr_Arnica != 0, ]
+
+mEristalis <- glmmTMB(round(log(Nr_Arnica)) ~ Stems * Group + offset(log(nPoll))
+                              + (1|Site), family = nbinom2,
+                             data = Eristalis)
 
 check_overdispersion(mEristalis)
+#no overdispersion with nbinom2
 summary(mEristalis)
 
-eff_Eristalis <- effect(c("log(Stems)"),mEristalis, xlevels = 50)
+eff_Eristalis <- effect(c("Stems"),mEristalis, xlevels = 50)
 eff.plot(eff_Eristalis, plotdata = T,
          ylab = "Proportion of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
@@ -554,26 +598,73 @@ testOutliers(residuals_Eristalis)
 ###Eupeodes corollae----
 Eupeodes <- subset(comb_all2, Species == "Eupeodes corollae")
 
-mEupeodes <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ log(Stems) * Group
-                      + (1|Site), family = binomial,
-                      data = Eupeodes,
-                      control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+Eupeodes_no0 <- Eupeodes[Eupeodes$Nr_Arnica != 0, ]
 
-check_overdispersion(mEupeodes)
-summary(mEupeodes)
+#negative binomial model
+mEupeodes1 <- glmmTMB(round(log(Nr_Arnica)) ~ Stems * Group + offset(log(nPoll))
+                     + (1|Site), family = nbinom2,
+                     data = Eupeodes_no0)
 
-eff_Eupeodes <- effect(c("log(Stems)"),mEupeodes, xlevels = 50)
-eff.plot(eff_Eupeodes, plotdata = T,
+check_overdispersion(mEupeodes1)
+summary(mEupeodes1)
+
+eff_Eupeodes1 <- effect(c("Stems"),mEupeodes1, xlevels = 50)
+eff.plot(eff_Eupeodes1, plotdata = T,
          ylab = "Proportion of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
          main = "Eupeodes corollae",
          ylim.data = T, overlay = F, 
          col.data = 3)
 
-residuals_Eupeodes <- simulateResiduals(fittedModel = mEupeodes)
-plot(residuals_Eupeodes)
-testOutliers(residuals_Eupeodes)
+residuals_Eupeodes1 <- simulateResiduals(fittedModel = mEupeodes1)
+plot(residuals_Eupeodes1)
+testOutliers(residuals_Eupeodes1)
+#residuals vs predicted significant
 
+#negative binomial model without log on reponse:
+mEupeodes1.2 <- glmmTMB(Nr_Arnica ~ Stems * Group + offset(log(nPoll))
+                      + (1|Site), family = nbinom2,
+                      data = Eupeodes)
+
+check_overdispersion(mEupeodes1.2)
+summary(mEupeodes1.2)
+
+eff_Eupeodes1.2 <- effect(c("Stems"),mEupeodes1.2, xlevels = 50)
+eff.plot(eff_Eupeodes1.2, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Eupeodes corollae",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Eupeodes1.2 <- simulateResiduals(fittedModel = mEupeodes1.2)
+plot(residuals_Eupeodes1.2)
+testOutliers(residuals_Eupeodes1.2)
+#residuals vs predicted significant, maybe slightly worse than for model with 
+  #log response, but uses all data points
+
+#binomial model
+mEupeodes2 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ Stems * Group
+                      + (1|Site), family = binomial,
+                      data = Eupeodes)
+
+check_overdispersion(mEupeodes2)
+summary(mEupeodes2)
+
+eff_Eupeodes2 <- effect(c("Stems"),mEupeodes2, xlevels = 50)
+eff.plot(eff_Eupeodes2, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Eupeodes corollae",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Eupeodes2 <- simulateResiduals(fittedModel = mEupeodes2)
+plot(residuals_Eupeodes2)
+testOutliers(residuals_Eupeodes2)
+#KS test and residuals vs predicted significant
+#res vs pred same weird directional tendency as Eristalis and Eupeodes negative
+  #binomial model, but worse than for Eupeodes nb model
 
 ###Helophilus pendulus----
 Helophilus <- subset(comb_all2, Species == "Helophilus pendulus")
