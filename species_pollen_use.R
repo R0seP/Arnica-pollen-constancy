@@ -127,7 +127,7 @@ AICTab
 #all but m2.2 multicollinearity issues
 
 #try poisson model because fit issues with binomial model detected
-m4 <- glmmTMB(Nr_Arnica ~ Stems * Species + Stems * Group + offset(log(nPoll))
+m4 <- glmmTMB(Nr_Arnica ~ (Species + Stems + Group)^2 + offset(log(nPoll))
               + (1|Site), family = poisson,
               data = comb_all2,
               control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
@@ -293,10 +293,11 @@ m_species_negbi <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPol
                            data = comb_all2, family = nbinom1,
                            control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m_species_negbi)
+check_overdispersion(m_species_negbi)
 
 eff_species2 <- effect(c("Stems"),m_species_negbi, xlevels = 50)
 eff.plot(eff_species2, plotdata = T,
-         ylab = "Proportion of Arnica pollen carried",
+         ylab = "Nr of Arnica pollen carried",
          xlab = "Population size Arnica (Nr Stems)",
          main = "negative binomial model",
          ylim.data = T, overlay = F, 
@@ -379,6 +380,7 @@ testOutliers(residuals_Andrena)
 ###Apis mellifera----
 Apis <- subset(comb_all2, Species == "Apis mellifera")
 
+#binomial model
 mApis <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ (log(Stems) * Group)
                     + (1|Site), family = binomial,
                     data = Apis,
@@ -399,6 +401,27 @@ residuals_Apis <- simulateResiduals(fittedModel = mApis)
 plot(residuals_Apis)
 testOutliers(residuals_Apis)
 
+#negative binomial model
+mApis2 <- glmmTMB(Nr_Arnica ~ Stems * Group + offset(log(nPoll))
+                  + (1|Site), family = nbinom1,
+                  data = Apis)
+
+check_overdispersion(mApis2)
+#underdispersion!
+summary(mApis2)
+
+eff_Apis2 <- effect(c("Stems"),mApis2, xlevels = 50)
+eff.plot(eff_Apis2, plotdata = T,
+         ylab = "Proportion of Arnica pollen carried",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "Apis mellifera",
+         ylim.data = T, overlay = F, 
+         col.data = 3)
+
+residuals_Apis2 <- simulateResiduals(fittedModel = mApis2)
+plot(residuals_Apis2)
+testOutliers(residuals_Apis2)
+#significant KS and significant res vs pred, binomial model much better fit here
 
 ###Bombus pascuorum----
 Bombus_pascuorum <- subset(comb_all2, Species == "Bombus pascuorum")
