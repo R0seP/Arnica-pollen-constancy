@@ -46,36 +46,35 @@ ggplot(comb_all2, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Species)) +
   scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
   labs(x = "Species", y = "% Arnica montana pollen carried")
 
-#mean & median levels of Arnica per species----
-# Calculate means for each species and then the overall mean
+#mean & median numbers of Arnica pollen per species and then the overall mean
 species_means <- comb_all2 %>%
   group_by(Species) %>%
-  summarize(mean_value = mean(P_ASTE.Arnica.montana, na.rm = TRUE))
+  summarize(mean_value = mean(Nr_Arnica, na.rm = TRUE))
 
 #mean
-overall_mean <- mean(species_means$mean_value)
-overall_mean # = 0.2477039
+overall_mean <- mean(na.omit(comb_all2$Nr_Arnica))
+overall_mean # = 278 pollen grains
 
 closest_value <- species_means %>%
   filter(abs(mean_value - overall_mean) == min(abs(mean_value - overall_mean)))
 
 print(closest_value)
-#Apis mellifera closest to mean of amount Arnica carried,
-#use Apis mellifera as baseline?
+#Nomada sp carries on average a number of pollen closest to overall average,
+#use Nomada sp as baseline?
 
 #median
-overall_median <- median(species_means$mean_value)
-overall_median # = 0.1813998
+overall_median <- median(na.omit(comb_all2$Nr_Arnica))
+overall_median # = 16
 
 closest_value2 <- species_means %>%
   filter(abs(mean_value - overall_median) == min(abs(mean_value - overall_median)))
 
 print(closest_value2)
-#Maniola jurtina sp closest to median of proportion Arnica carried,
-#use Maniola jurtina as baseline?
+#Eueodes corollae sp closest to median of proportion Arnica carried,
+#use Eupeodes corollae as baseline?
 
 #model selection----
-comb_all2$Species <- relevel(comb_all2$Species, ref = "Apis mellifera")
+comb_all2$Species <- relevel(comb_all2$Species, ref = "Nomada sp")
 m1 <- glmmTMB(cbind(Nr_Arnica, Nr_Not.Arnica) ~ (Stems + Group + Species)^2
                + (1|Site), family = binomial, 
               data = comb_all2,
@@ -158,7 +157,7 @@ m4.3 <- glmmTMB(Nr_Arnica ~ (Species + Stems + Group)^2 + offset(log(nPoll))
 summary(m4.3)
 
 check_overdispersion(m4.3)
-#overdispersed
+#no overdispersion
 check_collinearity(m4.3)
 #species high correlation, group moderate correlation
 
@@ -272,11 +271,11 @@ AICTab
 #All but m9.3 are over- or underdispersed or have multicollinearity issues
 #m4.3 has some collinearity but is also not over-or underdisersed
 
-r.squaredGLMM(m1)
+r.squaredGLMM(m1) #does not currently work
 r.squaredGLMM(m2)
 r.squaredGLMM(m2.2)
 r.squaredGLMM(m3)
-r.squaredGLMM(m4)
+r.squaredGLMM(m4) #does not currently work
 r.squaredGLMM(m4.2) #does not currently work
 r.squaredGLMM(m4.3) #does not currently work
 r.squaredGLMM(m5)
@@ -348,7 +347,7 @@ m_species_negbi2 <- glmmTMB(Nr_Arnica ~ (Species + Stems + Group)^2 + offset(log
                             control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m_species_negbi2)
 check_overdispersion(m_species_negbi2) #no overdipersion
-check_collinearity(m_species_negbi2) #species high VIF, group moderately high vif
+check_collinearity(m_species_negbi2) #species and group high VIF, stems moderately high vif
 
 eff_species3 <- effect(c("Stems"),m_species_negbi2, xlevels = 50)
 eff.plot(eff_species3, plotdata = T,

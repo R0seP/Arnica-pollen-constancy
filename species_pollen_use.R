@@ -17,9 +17,6 @@ source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_pre
 
 comb_all2$Species <- as.factor(comb_all2$Species)
 
-comb_all2$Species <- relevel(comb_all2$Species, ref = "Apis mellifera")
-#set the species with mean proportion of Arnica carried as reference 
-
 #data visualization----
 #calculate the mean P_ASTE.Arnica.montana for each species
 species_means <- comb_all2 %>%
@@ -69,6 +66,10 @@ grid.arrange(bp1, bp2, ncol = 1)
 
 #model negative binomial----
 #(m9.3 from model selection)
+
+comb_all2$Species <- relevel(comb_all2$Species, ref = "Nomada sp")
+#set the species with mean number of Arnica carried as reference 
+
 m_species <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
                            data = comb_all2, family = nbinom1,
                            control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
