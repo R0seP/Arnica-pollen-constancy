@@ -74,6 +74,7 @@ m_species <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + 
                            data = comb_all2, family = nbinom1,
                            control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
 summary(m_species)
+
 check_overdispersion(m_species) #no overdispersion
 check_collinearity(m_species) #no highly correlated predictors
 

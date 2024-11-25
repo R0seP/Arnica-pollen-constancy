@@ -57,6 +57,11 @@ eff.plot(eff_Arnica5_area, plotdata = T,
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
+#find number of degrees of freedom
+library(car)
+anova <- Anova(m_Arnica5_area, type = "III")  # Type III ANOVA table
+print(anova)
+
 
 #model test----
 #test if model assumptions are met and test model for fit:
@@ -81,6 +86,6 @@ predictions_Arnica5_area <- predict(m_Arnica5_area, newdata = pred_data_Arnica5_
 pred_data_Arnica5_area$Pred.Polli_Nr <- predictions_Arnica5_area$fit
 pred_data_Arnica5_area$Pred.POlli_Nr_SE <- predictions_Arnica5_area$se.fit
 pred_data_Arnica5_area
-#for 10 stems, 1.5 (+/- 0.3) area-caught pollinators are expected to also have
-#visited Arnica, for 100 stems 1.9 (+/- 0.3) pollinators, and for 500 stems
-#5.1 (+/- 1.4) pollinators caught in the area are expected to have visited Arnica as well.
+#for 10 stems, 2.1 (+/- 0.4) area-caught pollinators are expected to also have
+#visited Arnica, for 100 stems 2.3 (+/- 0.4) pollinators, and for 500 stems
+#4.2 (+/- 1.2) pollinators caught in the area are expected to have visited Arnica as well.

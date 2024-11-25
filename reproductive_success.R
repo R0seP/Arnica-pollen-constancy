@@ -158,6 +158,11 @@ eff.plot(effect_plot, plotdata = T,
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
 
+#find number of degrees of freedom
+library(car)
+anova <- Anova(m_success2, type = "III")  # Type III ANOVA table
+print(anova)
+
 #test if model assumptions are met and test model for fit:
 check_overdispersion(m_success2)
 #model no longer overdispersed!
