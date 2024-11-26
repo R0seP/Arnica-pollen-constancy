@@ -385,6 +385,35 @@ pred_data_species$Pred.Arnica <- predictions_species$fit
 pred_data_species$Pred.Arnica_SE <- predictions_species$se.fit
 pred_data_species
 
+
+#relevel species----
+m_species <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
+                     data = comb_all2, family = nbinom1,
+                     control = glmmTMBControl(optCtrl = list(iter.max = 10000, eval.max = 10000)))
+
+#extract the species with the average model coefficient:
+coefficients <- as.data.frame(summary(m_species)$coefficients$cond) #extract coefficients 
+
+imp_species$Parameter <- coefficients[1:22,1] #add parameter estimates to data frame
+
+imp_species_new <- imp_species #create new data frame
+imp_species_new$Intercept <- rep(0,22)
+
+imp_species_new[1,"Intercept"] <- imp_species_new[1,"Parameter"] #set intercept for Andrena to be same as parameter estimate for intercept
+
+for(i in 1:21){
+  imp_species_new[1+i, "Intercept"] <- imp_species[1+i,"Parameter"] + imp_species[1,"Parameter"]
+} #calculate intercept for species by adding parameter to intercept parameter estimate
+
+mean_intercept <- mean(imp_species_new$Intercept) #calculate mean intercept
+mean_intercept # = -2.695824
+
+closest_index <- which.min(abs(imp_species_new$Intercept - mean_intercept)) #find row with intercept closest to mean intercept
+closest_row <- imp_species_new[closest_index, ]
+print(closest_row)
+#Stenurella melanura species with mean intercept, use as baseline?
+
+
 #models by species----
 ###Apis mellifera----
 Apis <- subset(comb_all2, Species == "Apis mellifera")
