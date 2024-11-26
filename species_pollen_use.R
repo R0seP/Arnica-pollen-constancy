@@ -67,8 +67,8 @@ grid.arrange(bp1, bp2, ncol = 1)
 #model negative binomial----
 #(m9.3 from model selection)
 
-comb_all2$Species <- relevel(comb_all2$Species, ref = "Nomada sp")
-#set the species with mean number of Arnica carried as reference 
+comb_all2$Species <- relevel(comb_all2$Species, ref = "Andrena sp")
+#set the species with mean number of  log(Arnica carried) as reference 
 
 m_species <- glmmTMB(Nr_Arnica ~ Species + Group * Stems + offset(log(nPoll)) + (1|Site), 
                            data = comb_all2, family = nbinom1,

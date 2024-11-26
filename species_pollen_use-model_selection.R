@@ -29,7 +29,7 @@ special_log <- function(x) {
     } else if (element == 0) {
       return(0)
     } else {
-      return(round(log(element)))
+      return(log(element))
     }
   })
 }
@@ -46,21 +46,23 @@ ggplot(comb_all2, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Species)) +
   scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
   labs(x = "Species", y = "% Arnica montana pollen carried")
 
-#mean & median numbers of Arnica pollen per species and then the overall mean
+#mean & median numbers of log of Arnica pollen per species and then the overall mean
+comb_all2$log_NrArnica <- special_log(comb_all2$Nr_Arnica) #create column with log of Nr of Arncia where log(0) = 0
+
 species_means <- comb_all2 %>%
   group_by(Species) %>%
-  summarize(mean_value = mean(Nr_Arnica, na.rm = TRUE))
+  summarize(mean_value = mean(log_NrArnica, na.rm = TRUE))
 
 #mean
-overall_mean <- mean(na.omit(comb_all2$Nr_Arnica))
-overall_mean # = 278 pollen grains
+overall_mean <- mean(na.omit(comb_all2$log_NrArnica))
+overall_mean # = 3.18381
 
 closest_value <- species_means %>%
   filter(abs(mean_value - overall_mean) == min(abs(mean_value - overall_mean)))
 
 print(closest_value)
-#Nomada sp carries on average a number of pollen closest to overall average,
-#use Nomada sp as baseline?
+#Andrena sp carries on average a log number of pollen closest to overall average,
+#use Andrena sp as baseline?
 
 #median
 overall_median <- median(na.omit(comb_all2$Nr_Arnica))
