@@ -112,51 +112,37 @@ pred_data_success
 
 
 #negative binomial model----
-#seed_data$log_Stems <- log(seed_data$Stems)
 
-#figure out why effect doesn't work
-columns_with_zero_or_below <- which(apply(seed_data, 2, function(x) any(x <= 0)))
-print(columns_with_zero_or_below)
+##dummy model----
+#For some reason, effect() cannot handle negative binomial models with only one predictor
+#(other model type with only one predictor work fine, as well as nb models with several predictors).
 
-rows_with_zero_or_below <- which(apply(seed_data, 1, function(row) any(row <= 0)))
-print(rows_with_zero_or_below)
+#Therefore, I introduce a dummy parameter "Nonsense" to the model.
 
-#entries_zero_or_below <- which(seed_data <= 0, arr.ind = TRUE)
-#print(entries_zero_or_below)
+#"Nonsense" is uniform and does not affect the other model parameters, but it fixes the bug and 
+#lets me plot my effect plot.
 
-seed_data_filtered <- seed_data[apply(seed_data, 1, function(row) all(row > 0)), ]
-#returns no data
+seed_data_small <- seed_data[,c(1,2,5,8)] #create smaller data frame with only necessary columns
+str(seed_data_small) #all numeric except for site which is factor, should be fine
+seed_data_small$Nonsense <- rep(1,381) #add a second, uniform predictor
 
-seed_data_filtered <- seed_data
-seed_data_filtered$Stems <- pmax(pmin(seed_data_filtered$Stems, 
-                                      max(seed_data_filtered$Stems)), 1)
-seed_data_filtered$Head <- pmax(pmin(seed_data_filtered$Head, 
-                                     max(seed_data_filtered$Head)), 1)
-seed_data_filtered$Filled <- pmax(pmin(seed_data_filtered$Filled, 
-                                     max(seed_data_filtered$Filled)), 1)
-seed_data_filtered$Not_Filled <- pmax(pmin(seed_data_filtered$Not_Filled, 
-                                     max(seed_data_filtered$Not_Filled)), 1)
-seed_data_filtered$Total_seeds <- pmax(pmin(seed_data_filtered$Total_seeds, 
-                                           max(seed_data_filtered$Total_seeds)), 1)
-
-seed_data$Stems <- as.numeric(seed_data$Stems)
-seed_data$Head <- as.numeric(seed_data$Head)
-seed_data$Filled <- as.numeric(seed_data$Filled)
-seed_data$Not_Filled <- as.numeric(seed_data$Not_Filled)
-seed_data$Total_seeds <- as.numeric(seed_data$Total_seeds)
-seed_data$Site <- as.factor(seed_data$Site)
-str(seed_data)
-
-m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
-              data = seed_data, family = nbinom2)
-summary(m_success2)
+m_success2 <- glmmTMB(Filled ~ log(Stems) + Nonsense + offset(log(Total_seeds))  + (1|Site),
+                      data = seed_data_small, family = nbinom2)
 
 eff_success2 <- effect("log(Stems)", m_success2, xlevels = 50)
-eff.plot(effect_plot, plotdata = T,
+eff.plot(eff_success2, plotdata = T,
          ylab = "Number of filled seeds",
          xlab = "Population size Arnica (Nr Stems)",
          main = "",
          ylim.data = T, overlay = F, col.data = 3)
+
+
+##actual model----
+
+m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
+              data = seed_data_small, family = nbinom2)
+summary(m_success2)
+
 
 #find number of degrees of freedom
 library(car)
