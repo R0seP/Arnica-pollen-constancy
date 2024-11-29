@@ -137,6 +137,7 @@ eff.plot(eff_success2, plotdata = T,
          ylim.data = T, overlay = F, col.data = 3)
 
 
+
 ##actual model----
 
 m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
@@ -186,3 +187,25 @@ pred_data_success2
 library(ggeffects)
 effect_plot <- ggpredict(m_success2, terms = "Stems", condition = c(Total_seeds = 1))
 plot(effect_plot)
+
+
+#additional plots----
+seed_data_small$Stems <- as.factor(seed_data_small$Stems)
+seed_data_small$Filling_Ratio <- seed_data$Filling_Ratio
+
+#violin plot of proportion of filled seeds - might look misleading because of 
+#x-axis not being a scale
+ggplot(seed_data_small, aes(y=Filling_Ratio, x=Stems)) + 
+  geom_violin(fill = "skyblue")+
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
+  labs(x = "Nr of Arnica Stems", y = "Proportion of filled seeds")
+
+#data only of proprtion of filled seeds (like binomial model plot but withuot model)
+par(bty = "l")
+plot(seed_data$Filling_Ratio ~ seed_data$Stems,
+     xlab = "Population size Arnica (Nr Stems)",
+     ylab = "Proportion of filled seeds",
+     col = rgb(.15,.15,.95,.25),
+     pch = 21, bg = rgb(.15,.15,.95,.25))
