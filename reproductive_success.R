@@ -44,26 +44,31 @@ m3 <- glmmTMB(Filled ~ Stems +offset(log(Total_seeds))  + (1|Site),
 m4 <- glmmTMB(Filled ~ log(Stems) +offset(log(Total_seeds))  + (1|Site),
               data = seed_data, family = nbinom2)
 
+m5 <- glmmTMB(Filled ~ log(Stems) + log(Total_seeds)  + (1|Site),
+              data = seed_data, family = nbinom2)
 
-mlist = list(m3, m4)
-AICTab = AIC(m3, m4) 
+
+mlist = list(m3, m4, m5)
+AICTab = AIC(m3, m4, m5) 
 AICTab$logLik = unlist(lapply(mlist, logLik)) 
 AICTab = AICTab[order(AICTab$AIC, decreasing=F),]
 AICTab$delta = round(AICTab$AIC - min(AICTab$AIC), 2)
 lh = exp(-0.5*AICTab$delta)
 AICTab$w = round(lh/sum(lh), 2)
 AICTab
-#model m4 with log ranked higher
+#model m4 with log ranked highest
 
 check_overdispersion(m3)
 check_overdispersion(m4)
+check_overdispersion(m5)
 #no overdispersion
 
 r.squaredGLMM(m1)
 r.squaredGLMM(m2)
 r.squaredGLMM(m3)
 r.squaredGLMM(m4)
-#model m1, binomial without log highest r2, which model to use?
+r.squaredGLMM(m5)
+#model m5 with nPoll as predictor and not offset by far highest r2
 
 #binomial model----
 #modelling the reproductive success of Arnica montana with a binomial model, 
@@ -141,7 +146,7 @@ eff.plot(eff_success2, plotdata = T,
 ##actual model----
 
 m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
-              data = seed_data_small, family = nbinom2)
+              data = seed_data, family = nbinom2)
 summary(m_success2)
 
 
@@ -164,6 +169,25 @@ testOutliers(residuals_success2)
 #significant KS deviation and significant quantile deviations, but no longer any
 #significant outliers -> better than binomial model?
 #Just because of big sample size and model family?
+
+
+##alternative model----
+m_success3 <- glmmTMB(Filled ~ log(Stems) + log(Total_seeds)  + (1|Site),
+                      data = seed_data, family = nbinom2)
+
+summary(m_success3)
+#stems still significantly positive, nPoll also significant
+
+#test if model assumptions are met and test model for fit:
+check_overdispersion(m_success3)
+
+hist(resid(m_success3))
+
+residuals_success3 <- simulateResiduals(fittedModel = m_success3)
+plot(residuals_success3)
+testOutliers(residuals_success3)
+#KS and res. vs pred. significant, looks very similar to m_success2
+
 
 #effect sizes n.b.----
 
