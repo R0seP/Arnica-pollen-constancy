@@ -171,7 +171,8 @@ testOutliers(residuals_success2)
 #Just because of big sample size and model family?
 
 
-##alternative model----
+##alternative models----
+#use nPoll as covariate not as offset
 m_success3 <- glmmTMB(Filled ~ log(Stems) + log(Total_seeds)  + (1|Site),
                       data = seed_data, family = nbinom2)
 
@@ -187,6 +188,34 @@ residuals_success3 <- simulateResiduals(fittedModel = m_success3)
 plot(residuals_success3)
 testOutliers(residuals_success3)
 #KS and res. vs pred. significant, looks very similar to m_success2
+
+
+#just consider number of filled seeds, regardless of total number of seeds
+m_success4 <- glmmTMB(Filled ~ log(Stems)  + Nonsense + (1|Site),
+                      data = seed_data_small, family = nbinom1)
+#add nonsense parameter again for later plotting
+
+summary(m_success4)
+#stems still significantly positive, nPoll also significant
+
+#test if model assumptions are met and test model for fit:
+check_overdispersion(m_success4)
+#was underdispersed, therefore switched to nbinom1
+
+hist(resid(m_success4))
+
+residuals_success4 <- simulateResiduals(fittedModel = m_success4)
+plot(residuals_success4)
+testOutliers(residuals_success4)
+#KS and res. vs pred. significant, might look better than for other models?
+
+
+eff_success4 <- effect("log(Stems)", m_success4, xlevels = 50)
+eff.plot(eff_success4, plotdata = T,
+         ylab = "Number of filled seeds",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
 
 
 #effect sizes n.b.----
