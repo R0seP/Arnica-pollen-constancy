@@ -89,3 +89,25 @@ pred_data_Arnica5_area
 #for 10 stems, 2.1 (+/- 0.4) area-caught pollinators are expected to also have
 #visited Arnica, for 100 stems 2.3 (+/- 0.4) pollinators, and for 500 stems
 #4.2 (+/- 1.2) pollinators caught in the area are expected to have visited Arnica as well.
+
+
+#alternative models----
+Arnica5$Nr_Arnica <- round(Arnica5$Nr_Arnica)
+m1 <- glmmTMB(Nr_Arnica ~ Stems + Species + offset(log(nPoll)), data = Arnica5,
+              family = nbinom2)
+summary(m1)
+r.squaredGLMM(m1)
+
+m2 <- glmmTMB(Nr_Arnica ~ Stems + offset(log(nPoll)), data = Arnica5,
+              family = nbinom2)
+summary(m2)
+r.squaredGLMM(m2)
+#model with species explains nearly all the variance in the data, while model 
+#with only stems barely explains variance
+
+eff_Arnica5_area2 <- effect("Stems",m1, xlevels = 50)  
+eff.plot(eff_Arnica5_area2, plotdata = T,
+         ylab = "Number of pollinators caught in Area visiting Arnica",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
