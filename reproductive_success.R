@@ -116,7 +116,7 @@ pred_data_success
 #seeds are expected to be filled per flower head, averaged over all sites.
 
 
-#negative binomial model----
+#n.b. model proprtion----
 
 ##dummy model----
 #For some reason, effect() cannot handle negative binomial models with only one predictor
@@ -171,7 +171,7 @@ testOutliers(residuals_success2)
 #Just because of big sample size and model family?
 
 
-##alternative models----
+##alternative model----
 #use nPoll as covariate not as offset
 m_success3 <- glmmTMB(Filled ~ log(Stems) + log(Total_seeds)  + (1|Site),
                       data = seed_data, family = nbinom2)
@@ -190,13 +190,68 @@ testOutliers(residuals_success3)
 #KS and res. vs pred. significant, looks very similar to m_success2
 
 
+##effect sizes----
+
+#r-squared value:
+r.squaredGLMM(m_success2)
+
+#predict proportion of filled seeds for 10, 100, and 500 stems
+pred_data_success2 <- data.frame(Stems = c(10, 100, 500), Total_seeds = mean(seed_data$Total_seeds))
+predictions_success2 <- predict(m_success2, newdata = pred_data_success2, type = "response", re.form = NA, se.fit = T)
+
+pred_data_success2$Pred.Filled <- predictions_success2$fit
+pred_data_success2$Pred.Filled_SE <- predictions_success2$se.fit
+pred_data_success2
+#for 10 stems, 59.4 (+/- 6.1) seeds are expected to be filled, for 100 stems
+#77.2 (+/- 4.4) seeds, and for 500 stems 92.7 (+/- 9.5) 
+#seeds are expected to be filled per flower head, at an average of 105 seeds per
+#flower head and averaged over all sites.
+
+#calculate proportions:
+pred_data_success2_prop <- data.frame(Stems = c(10, 100, 500), Total_seeds = mean(seed_data$Total_seeds))
+pred_data_success2_prop$Mean_prop <- pred_data_success2$Pred.Filled/mean(seed_data$Total_seeds)
+pred_data_success2_prop$Lower_mean <- (pred_data_success2$Pred.Filled - pred_data_success2$Pred.Filled_SE)/mean(seed_data$Total_seeds)
+pred_data_success2_prop$Upper_mean <- (pred_data_success2$Pred.Filled + pred_data_success2$Pred.Filled_SE)/mean(seed_data$Total_seeds)
+pred_data_success2_prop$Mean_prop_SE <- pred_data_success2_prop$Upper_mean - pred_data_success2_prop$Lower_mean
+pred_data_success2_prop
+#for 10 stems, 56.7 (+/- 11.6)% of seeds are expected to be filled, for 100 stems
+#73.7 (+/- 8.4)% of seeds, and for 500 stems 88.6 (+/- 18.1)% of 
+#seeds are expected to be filled per flower head, at an average of 105 seeds per
+#flower head and averaged over all sites.
+
+
+#alternative way of creating a plot since effect() currently doesn't work, with fixed offset term
+library(ggeffects)
+effect_plot <- ggpredict(m_success2, terms = "Stems", condition = c(Total_seeds = 1))
+plot(effect_plot)
+
+
+#n.b. model number----
 #just consider number of filled seeds, regardless of total number of seeds
+
+##dummy model----
 m_success4 <- glmmTMB(Filled ~ log(Stems)  + Nonsense + (1|Site),
                       data = seed_data_small, family = nbinom1)
 #add nonsense parameter again for later plotting
 
 summary(m_success4)
 #stems still significantly positive, nPoll also significant
+
+eff_success4 <- effect("log(Stems)", m_success4, xlevels = 50)
+eff.plot(eff_success4, plotdata = T,
+         ylab = "Number of filled seeds",
+         xlab = "Population size Arnica (Nr Stems)",
+         main = "",
+         ylim.data = T, overlay = F, col.data = 3)
+
+
+##actual model----
+m_success4 <- glmmTMB(Filled ~ log(Stems)  + (1|Site),
+                      data = seed_data, family = nbinom1)
+
+summary(m_success4)
+
+r.squaredGLMM(m_success4)
 
 #test if model assumptions are met and test model for fit:
 check_overdispersion(m_success4)
@@ -209,37 +264,16 @@ plot(residuals_success4)
 testOutliers(residuals_success4)
 #KS and res. vs pred. significant, might look better than for other models?
 
+##effect sizes----
+pred_data_success4 <- data.frame(Stems = c(10, 100, 500))
+predictions_success4 <- predict(m_success4, newdata = pred_data_success4, type = "response", re.form = NA, se.fit = T)
 
-eff_success4 <- effect("log(Stems)", m_success4, xlevels = 50)
-eff.plot(eff_success4, plotdata = T,
-         ylab = "Number of filled seeds",
-         xlab = "Population size Arnica (Nr Stems)",
-         main = "",
-         ylim.data = T, overlay = F, col.data = 3)
-
-
-#effect sizes n.b.----
-
-#r-squared value:
-r.squaredGLMM(m_success2)
-
-#predict number of filled seeds for 10, 100, and 500 stems
-pred_data_success2 <- data.frame(Stems = c(10, 100, 500), Total_seeds = mean(seed_data$Total_seeds))
-predictions_success2 <- predict(m_success2, newdata = pred_data_success2, type = "response", re.form = NA, se.fit = T)
-
-pred_data_success2$Pred.Filled <- predictions_success2$fit
-pred_data_success2$Pred.Filled_SE <- predictions_success2$se.fit
-pred_data_success2
-#for 10 stems, 59.4 (+/- 6.1)% of seeds are expected to be filled, for 100 stems
-#77.2 (+/- 4.4)% of seeds, and for 500 stems 92.7 (+/- 9.5)% of 
-#seeds are expected to be filled per flower head, at an average of 105 seeds per
-#flower head and averaged over all sites.
-
-
-#alternative way of creating a plot since effect() currently doesn't work, with fixed offset term
-library(ggeffects)
-effect_plot <- ggpredict(m_success2, terms = "Stems", condition = c(Total_seeds = 1))
-plot(effect_plot)
+pred_data_success4$Pred.Filled <- predictions_success4$fit
+pred_data_success4$Pred.Filled_SE <- predictions_success4$se.fit
+pred_data_success4
+#for 10 stems, 52.5 (+/- 6.5) seeds are expected to be filled, for 100 stems
+#77.3 (+/- 5.3) seeds, and for 500 stems 101.4 (+/- 12.4) 
+#seeds are expected to be filled per flower head.
 
 
 #additional plots----
