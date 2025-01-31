@@ -16,28 +16,43 @@ source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/EffPlots
 source("C:/Users/sohe1/Documents/Master General Biology/Master_Thesis/R/data_preparation.R", echo = TRUE)
 
 comb_all2$Species <- as.factor(comb_all2$Species)
+comb_all2 <- na.omit(comb_all2)
 
 #data visualization----
-#calculate the mean P_ASTE.Arnica.montana for each species
-species_means <- comb_all2 %>%
-  group_by(Species) %>%
-  summarize(mean_value = mean(P_ASTE.Arnica.montana, na.rm = TRUE)) %>%
-  arrange(desc(mean_value))
-
-#reorder the Species factor levels based on the calculated means
-comb_all2$Species <- factor(comb_all2$Species, levels = species_means$Species)
-
-#boxplot of percentage of Arnica carried
-bp1 <- ggplot(comb_all2, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Species)) + 
+ggplot(comb_all, aes(fill=Group, y=Nr_Arnica, x=Group)) + 
   geom_boxplot()+
   theme_minimal()+
-  theme(legend.text = element_text(size = 12), # increase legend text size
-        legend.title = element_text(size = 14), # increase legend title size
-        axis.text = element_text(size = 12), # increase axis text size
-        axis.title = element_text(size = 14)) + 
   theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
   scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
-  labs(x = "Species", y = "% Arnica montana pollen carried")
+  labs(x = "Sampling group", y = "Nr of Arnica montana pollen in sample")
+
+ggplot(comb_all, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Group)) + 
+  geom_boxplot()+
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
+  scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
+  labs(x = "Sampling group", y = "% Arnica montana pollen in sample")
+
+#calculate the mean P_ASTE.Arnica.montana for each species
+#species_means <- comb_all2 %>%
+  #group_by(Species) %>%
+  #summarize(mean_value = mean(P_ASTE.Arnica.montana, na.rm = TRUE)) %>%
+  #arrange(desc(mean_value))
+
+#reorder the Species factor levels based on the calculated means
+#comb_all2$Species <- factor(comb_all2$Species, levels = species_means$Species)
+
+#boxplot of percentage of Arnica carried
+#bp1 <- ggplot(comb_all2, aes(fill=Group, y=P_ASTE.Arnica.montana, x=Species)) + 
+  #geom_boxplot()+
+  #theme_minimal()+
+  #theme(legend.text = element_text(size = 12), # increase legend text size
+    #    legend.title = element_text(size = 14), # increase legend title size
+    #    axis.text = element_text(size = 12), # increase axis text size
+    #   axis.title = element_text(size = 14)) + 
+  #theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
+  #scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
+  #labs(x = "Species", y = "% Arnica montana pollen in sample")
 
 #calculate the mean Nr_Arnica for each species
 species_means <- comb_all2 %>%
@@ -49,19 +64,19 @@ species_means <- comb_all2 %>%
 comb_all2$Species <- factor(comb_all2$Species, levels = species_means$Species)
 
 #boxplot of number of Arnica pollen carried
-bp2 <- ggplot(comb_all2, aes(fill=Group, y=Nr_Arnica, x=Species)) + 
-  geom_boxplot()+
-  theme_minimal()+
-  theme(legend.text = element_text(size = 12), # increase legend text size
-        legend.title = element_text(size = 14), # increase legend title size
-        axis.text = element_text(size = 12), # increase axis text size
-        axis.title = element_text(size = 14)) + 
-  theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
-  scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
-  labs(x = "Species", y = "Nr of Arnica montana pollen carried")
+#bp2 <- ggplot(comb_all2, aes(fill=Group, y=Nr_Arnica, x=Species)) + 
+  #geom_boxplot()+
+  #theme_minimal()+
+  #theme(legend.text = element_text(size = 12), # increase legend text size
+  #      legend.title = element_text(size = 14), # increase legend title size
+  #      axis.text = element_text(size = 12), # increase axis text size
+  #      axis.title = element_text(size = 14)) + 
+  #theme(axis.text.x = element_text(angle=90, vjust=.5, hjust=1))+
+  #scale_fill_manual(values = c("area" = "darkgreen","flower"="orange"))+
+  #labs(x = "Species", y = "Nr of Arnica montana pollen carried")
 
-library(gridExtra)
-grid.arrange(bp1, bp2, ncol = 1)
+#library(gridExtra)
+#grid.arrange(bp1, bp2, ncol = 1)
 
 
 #model negative binomial----
@@ -76,15 +91,33 @@ summary(m_species)
 check_overdispersion(m_species) #no overdispersion
 check_collinearity(m_species) #no highly correlated predictors
 
-eff_species <- effect(c("Stems"),m_species, xlevels = 50)
-eff.plot(eff_species, plotdata = T,
-         ylab = "Nr of Arnica pollen carried",
+#plot predictions for population size
+eff_pollen_prop <- effect(c("Stems"),m_species, xlevels = 50)
+eff.plot(eff_pollen_prop, plotdata = T,
+         ylab = "Nr of Arnica pollen in sample",
          xlab = "Population size Arnica (Nr Stems)",
          main = "",
          ylim.data = T, overlay = F, 
          col.data = 3)
 
-#find number of degrees of freedom
+#plot predicitions for species
+eff_species <- effect("Species",m_species, xlevels = 50)
+
+par(mar = c(8.5, 4, 4, 2) + 0.1)  #increase bottom margin
+eff.plot(eff_species, plotdata = T,
+         ylab = "Nr of Arnica pollen in sample",
+         xaxt = "n",
+         ylim.data = T, overlay = F, 
+         col.data = 3, 
+         las = 3)
+
+species_ordered <- as.list(levels(comb_all2$Species))
+axis(1, at = 1:22, labels = FALSE)  #suppress default labels
+mtext(text = species_ordered, side = 1, at = 1:22, line = 1, las = 2, 
+      cex = 0.8, font = 3) #add labels in italcs and rotated
+
+
+#find number of degrees of freedom and effect of species overall
 library(car)
 anova <- Anova(m_species, type = "III")  # Type III ANOVA table
 print(anova)
