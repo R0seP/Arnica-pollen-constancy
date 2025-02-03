@@ -199,7 +199,7 @@ visweb(web20)
 plotweb(web20, text.rot=90, col.low = "forestgreen", col.high = "steelblue")
 
 
-###species -level metrics----
+###species-level metrics----
 species_metrics <- specieslevel(network)
 species_metrics
 

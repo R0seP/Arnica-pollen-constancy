@@ -91,9 +91,8 @@ eff.plot(eff_success, plotdata = T,
 #test if model assumptions are met and test model for fit:
 check_overdispersion(m_success)
 #model overdispersed
-#qqnorm(resid(m_success))
+
 hist(resid(m_success))
-#qqplot and normality of residuals look good to me
 
 residuals_success <- simulateResiduals(fittedModel = m_success)
 plot(residuals_success)
@@ -142,7 +141,7 @@ r.squaredGLMM(m_success2)
 #test if model assumptions are met and test model for fit:
 check_overdispersion(m_success2)
 #model no longer overdispersed!
-#qqnorm(resid(m_success2))
+
 hist(resid(m_success2))
 
 residuals_success2 <- simulateResiduals(fittedModel = m_success2)

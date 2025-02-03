@@ -60,12 +60,12 @@ NMDS$stress
 
 #difference groups----
 #code in part modified from https://eddatascienceees.github.io/tutorial-rayrr13/
-# make new dataframe with by extracting NMDS scores
+#make new dataframe with by extracting NMDS scores
 nmds.scores <- as.data.frame(scores(NMDS)$sites)
 nmds.scores <- nmds.scores %>%
   mutate(Site = as.factor(nmds_data$Site), Group = as.factor(nmds_data$Group))
 
-# define hidden vegan function that finds coordinates for drawing a covariance ellipse
+#define hidden vegan function that finds coordinates for drawing a covariance ellipse
 veganCovEllipse <- function (cov, center = c(0, 0), scale = 1, npoints = 100)
 {
   theta <- (0:npoints) * 2 * pi/npoints
@@ -74,10 +74,10 @@ veganCovEllipse <- function (cov, center = c(0, 0), scale = 1, npoints = 100)
 }
 
 
-# create empty dataframe to combine NMDS data with ellipse data
+#create empty dataframe to combine NMDS data with ellipse data
 ellipse_df <- data.frame()
 
-# adding data for ellipse, in this case using distance as a grouping factor
+#adding data for ellipse, in this case using distance as a grouping factor
 for(g in levels(nmds.scores$Group)){
   ellipse_df <- rbind(ellipse_df, cbind(as.data.frame(with(nmds.scores[nmds.scores$Group==g,],
                                                            veganCovEllipse(cov.wt(cbind(NMDS1,NMDS2),
@@ -87,7 +87,7 @@ for(g in levels(nmds.scores$Group)){
 }
 
 
-# create ggplot
+#create ggplot
 (NMDS_plot <- ggplot(data = nmds.scores, aes(NMDS1, NMDS2)) +
     geom_point(aes(color = Group, shape = Group)) + # adding different colors and shapes for different groups
     geom_path(data=ellipse_df, aes(x=NMDS1, y=NMDS2, colour=Distance), linewidth=1) + # adding covariance ellipses according to group
@@ -106,22 +106,19 @@ for(g in levels(nmds.scores$Group)){
                        values = c(17, 19))+ # customizing shapes
     geom_text(aes(label = Site), hjust = 0.5, vjust = -0.5)) # adding site labels
 
-# data analysis
-# using a PERMANOVA (PERmutational Multivariate ANalysis Of VAriance) 
-# to test the differences in community composition
+#data analysis
+#using a PERMANOVA (PERmutational Multivariate ANalysis Of VAriance) 
+#to test the differences in community composition
 permanova_group <- adonis2(as.matrix(nmds_data [,3:85]) ~ Group, nmds_data,
                      permutations = 999, method = "bray") 
-# permutations is the number of possible arrangements the data could take
-# using permutations = 999 is standard practice in science and across the literature
-# can increase to get a more thorough analysis
-# use method = bray as it is what we previously used to calculate pairwise distances
+
 
 permanova_group
 #p (< 0.01) indicates significant differences in community composition between groups
 
-# check model assumptions
-# check for multivariate homogeneity of group variances
-# generate distance matrix from pollinator community matrix
+#check model assumptions
+#check for multivariate homogeneity of group variances
+#generate distance matrix from pollinator community matrix
 dist <- vegdist(community_matrix, method = "bray")
 
 # use betadisper test to check for multivariate homogeneity of group variances
@@ -131,50 +128,46 @@ permutest(dispersion)
 # are homogeneous and model meets the assumptions. Model results can be trusted.
 
 
-# simper (SIMilarity PERcentage) analysis
-# compare community differences, report what species are driving those differences.
+#simper (SIMilarity PERcentage) analysis
+#compare community differences, report what species are driving those differences.
 simper <- with(nmds_data[,c(1,2)], simper(as.matrix(nmds_data[,3:85]), Group, permutations = 100))
 
-# see most influential species contributing to community differences
+#see most influential species contributing to community differences
 simper
-#Species represented in this output are responsible for 70% of the observed variation. 
-#Each time it adds another taxonomic group it shows its cumulative contribution of 
-#rather than its individual one.
 
 summary(simper)
 
 
 #differences sites----
-# data analysis
+#data analysis
 #PERMANOVA to test differences in community composition between sites
 permanova_site <- adonis2(as.matrix(nmds_data [,3:85]) ~ Site, nmds_data,
                      permutations = 999, method = "bray")
 
 permanova_site
-#p (~0.25) indicates proportion of permutated F-ratios which are greater or 
-#equal to the observed statistic
+#p (~0.25) -> no significant community differences between sites?
 
-# check model assumptions
-# generate distance matrix from pollinator community matrix
+#check model assumptions
+#generate distance matrix from pollinator community matrix
 dist <- vegdist(community_matrix, method = "bray")
 
-# use betadisper test to check for multivariate homogeneity of group variances
+#use betadisper test to check for multivariate homogeneity of group variances
 dispersion_site <- betadisper(dist, group=nmds_data$Site)
 permutest(dispersion_site)
-# significant result (p < 0.01) -> non-homogeneous variances, model does not 
-# meet the assumptions, model results cannot be trusted.
+#significant result (p < 0.01) -> non-homogeneous variances, model does not 
+#meet the assumptions, model results cannot be trusted.
 
-# Include dispersion in model to control for non-homogeneous variance
-# Calculate dispersion
+#Include dispersion in model to control for non-homogeneous variance
+#Calculate dispersion
 dispersion <- betadisper(vegdist(as.matrix(nmds_data[, 3:85]), method = "bray"), nmds_data$Site)
 
-# Extract distances to centroids
+#Extract distances to centroids
 dispersion_distances <- dispersion$distances
 
-# Add dispersion distances to data
+#Add dispersion distances to data
 nmds_data$Dispersion <- dispersion_distances
 
-# Run adonis2 including dispersion as a factor
+#Run adonis2 including dispersion as a factor
 permanova_site <- adonis2(as.matrix(nmds_data[, 3:85]) ~ Site + Dispersion, data = nmds_data,
                           permutations = 999, method = "bray")
 

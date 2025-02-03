@@ -57,7 +57,7 @@ closest_value <- species_means %>%
 
 print(closest_value)
 #Andrena sp carries on average a log number of pollen closest to overall average,
-#use Andrena sp as baseline?
+#use Andrena sp as baseline? (default anyways)
 
 #median
 overall_median <- median(na.omit(comb_all2$log_NrArnica))
