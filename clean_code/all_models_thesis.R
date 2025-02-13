@@ -4,6 +4,18 @@ library(glmmTMB)
 library(lmerTest)
 
 
+#model direct influence of population size on reproductive success
+seed_data <- read.csv("seed_data.csv", h = T)
+
+##proportion of filled seeds as response
+m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
+                      data = seed_data, family = nbinom2)
+
+##number of filled seeds as response
+m_success4 <- glmmTMB(Filled ~ log(Stems)  + (1|Site),
+                      data = seed_data, family = nbinom1)
+
+
 #model number of pollinators
 poll_nr <- read.csv("poll_nr.csv", h = T)
 
@@ -47,10 +59,4 @@ Arnica5_counts <- read.csv("Arnica5_counts.csv", h = T)
 
 m_Arnica5_area <- glmmTMB(n ~ Stems, data = Arnica5_counts, family = poisson)
 
-
-#model direct influence of population size on reproductive success
-seed_data <- read.csv("seed_data.csv", h = T)
-
-m_success2 <- glmmTMB(Filled ~ log(Stems) + offset(log(Total_seeds))  + (1|Site),
-                      data = seed_data, family = nbinom2)
 
